@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿namespace AcademiaDoZe.Application.DTOs;
 
-namespace AcademiaDoZe.Application.DTOs
+public class ArquivoDto
 {
-    internal class ArquivoDto
-    {
-    }
+    public byte[]? Conteudo { get; set; }
 }

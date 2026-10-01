@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace AcademiaDoZe.Application.DTOs
+﻿public class AcessoAlunoDto
 {
-    internal class AcessoAlunoDto
-    {
-    }
+    public int Id { get; set; }
 }

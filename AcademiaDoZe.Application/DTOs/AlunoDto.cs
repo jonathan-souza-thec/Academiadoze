@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿namespace AcademiaDoZe.Application.DTOs;
 
-namespace AcademiaDoZe.Application.DTOs
+public class AlunoDto : PessoaDto
 {
-    internal class AlunoDto
-    {
-    }
 }

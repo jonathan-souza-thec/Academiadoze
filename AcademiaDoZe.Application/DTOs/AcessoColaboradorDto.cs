@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿namespace AcademiaDoZe.Application.DTOs;
 
-namespace AcademiaDoZe.Application.DTOs
+public class AcessoColaboradorDto
 {
-    internal class AcessoColaboradorDto
-    {
-    }
+    public int Id { get; set; }
 }

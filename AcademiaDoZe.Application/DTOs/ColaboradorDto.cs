@@ -1,10 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using AcademiaDoZe.Application.Enums;
 
-namespace AcademiaDoZe.Application.DTOs
+namespace AcademiaDoZe.Application.DTOs;
+
+public class ColaboradorDto : PessoaDto
 {
-    internal class ColaboradorDto
-    {
-    }
+    public DateOnly DataAdmissao { get; set; }
+    public AppColaboradorTipo Tipo { get; set; }
+    public AppColaboradorVinculo Vinculo { get; set; }
 }
