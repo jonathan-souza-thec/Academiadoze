@@ -17,25 +17,26 @@ public static class MauiProgram
             .UseMauiCommunityToolkit()
             .ConfigureFonts(fonts =>
             {
-                fonts.AddFont(
-                    "OpenSans-Regular.ttf",
-                    "OpenSansRegular");
+                fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
+                fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
 
-                fonts.AddFont(
-                    "OpenSans-Semibold.ttf",
-                    "OpenSansSemibold");
+                // Fonte de ícones usada no menu e nos botões
+                fonts.AddFont("MaterialIcons-Regular.ttf", "MaterialIcons");
             });
 
-        ConfigurationHelper.ConfigureServices(
-            builder.Services);
+        // Configurar serviços da aplicação e repositórios
+        ConfigurationHelper.ConfigureServices(builder.Services);
 
+        // Registrar ViewModels
         builder.Services.AddTransient<DashboardListViewModel>();
         builder.Services.AddTransient<LogradouroListViewModel>();
         builder.Services.AddTransient<LogradouroViewModel>();
 
+        // Registrar Views
         builder.Services.AddTransient<DashboardListPage>();
         builder.Services.AddTransient<LogradouroListPage>();
         builder.Services.AddTransient<LogradouroPage>();
+        builder.Services.AddTransient<ConfigPage>();
 
 #if DEBUG
         builder.Logging.AddDebug();
