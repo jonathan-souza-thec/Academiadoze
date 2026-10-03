@@ -1,4 +1,7 @@
-﻿using AcademiaDoZe.Application.DTOs;
+﻿
+﻿// Jonathan de Souza Pereira
+
+using AcademiaDoZe.Application.DTOs;
 using AcademiaDoZe.Application.Interfaces;
 using AcademiaDoZe.Domain.Repositories;
 
@@ -13,18 +16,76 @@ public class AcessoAlunoService : IAcessoAlunoService
         _repoFactory = repoFactory;
     }
 
-    public Task<AcessoAlunoDto?> ObterPorIdAsync(int id, CancellationToken cancellationToken = default)
-        => throw new NotImplementedException();
+    public async Task<AcessoAlunoDto?> ObterPorIdAsync(
+        int id,
+        CancellationToken cancellationToken = default)
+    {
+        var repo = _repoFactory();
 
-    public Task<IEnumerable<AcessoAlunoDto>> ObterTodosAsync(CancellationToken cancellationToken = default)
-        => throw new NotImplementedException();
+        var acesso = await repo.ObterPorId(id, cancellationToken);
 
-    public Task<AcessoAlunoDto> AdicionarAsync(AcessoAlunoDto acessoDto, CancellationToken cancellationToken = default)
-        => throw new NotImplementedException();
+        return acesso == null
+            ? null
+            : MapToDto(acesso);
+    }
 
-    public Task<AcessoAlunoDto> AtualizarAsync(AcessoAlunoDto acessoDto, CancellationToken cancellationToken = default)
-        => throw new NotImplementedException();
+    public async Task<IEnumerable<AcessoAlunoDto>> ObterTodosAsync(
+        CancellationToken cancellationToken = default)
+    {
+        var repo = _repoFactory();
 
-    public Task<bool> RemoverAsync(int id, CancellationToken cancellationToken = default)
-        => throw new NotImplementedException();
+        var acessos = await repo.ObterTodos(cancellationToken);
+
+        return acessos.Select(MapToDto);
+    }
+
+    public async Task<AcessoAlunoDto> RegistrarEntradaAsync(
+        int alunoId,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException(
+            "O registro de entrada depende da implementação do repositório de AcessoAluno e da validação da matrícula ativa.");
+    }
+
+    public async Task<AcessoAlunoDto> RegistrarSaidaAsync(
+        int acessoId,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException(
+            "O registro de saída depende de uma propriedade de saída no domínio ou da regra de persistência correspondente.");
+    }
+
+    public async Task<bool> RemoverAsync(
+        int id,
+        CancellationToken cancellationToken = default)
+    {
+        var repo = _repoFactory();
+
+        return await repo.Remover(id, cancellationToken);
+    }
+
+    public async Task<IEnumerable<AcessoAlunoDto>> ObterPorAlunoAsync(
+        int alunoId,
+        CancellationToken cancellationToken = default)
+    {
+        var repo = _repoFactory();
+
+        var acessos = await repo.ObterAcessosPorAlunoPeriodo(
+            alunoId: alunoId,
+            inicio: null,
+            fim: null,
+            cancellationToken: cancellationToken);
+
+        return acessos.Select(MapToDto);
+    }
+
+    private static AcessoAlunoDto MapToDto(
+        Domain.Entities.AcessoAluno acesso)
+    {
+        return new AcessoAlunoDto
+        {
+            Id = acesso.Id,
+            Entrada = acesso.DataHora
+        };
+    }
 }

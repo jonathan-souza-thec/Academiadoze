@@ -1,127 +1,271 @@
 using AcademiaDoZe.Presentation.AppMaui.Models;
+using Android.App;
+using CommunityToolkit.Maui.Alerts;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using System.Collections.ObjectModel;
-using System.Windows.Input;
 
 namespace AcademiaDoZe.Presentation.AppMaui.PageModels
 {
-    public partial class ProjectDetailPageModel : ObservableObject, IQueryAttributable, IProjectTaskPageModel
+    public partial class ProjectDetailPageModel :
+        ObservableObject,
+        IQueryAttributable,
+        IProjectTaskPageModel
     {
         private Project? _project;
+
         private readonly ProjectRepository _projectRepository;
         private readonly TaskRepository _taskRepository;
         private readonly CategoryRepository _categoryRepository;
         private readonly TagRepository _tagRepository;
         private readonly ModalErrorHandler _errorHandler;
 
-        [ObservableProperty]
-        private string _name = string.Empty;
+        // =========================================================
+        // CAMPOS
+        // =========================================================
 
-        [ObservableProperty]
+        private string _name = string.Empty;
         private string _description = string.Empty;
 
-        [ObservableProperty]
         private List<ProjectTask> _tasks = [];
-
-        [ObservableProperty]
         private List<Category> _categories = [];
 
-        [ObservableProperty]
         private Category? _category;
-
-        [ObservableProperty]
         private int _categoryIndex = -1;
 
-        [ObservableProperty]
         private List<Tag> _allTags = [];
 
-        public IList<object> SelectedTags { get; set; } = new List<object>();
-
-        [ObservableProperty]
         private IconData _icon;
 
-        [ObservableProperty]
-        bool _isBusy;
+        private bool _isBusy;
 
-        [ObservableProperty]
         private List<IconData> _icons = new List<IconData>
         {
-            new IconData { Icon = FluentUI.ribbon_24_regular, Description = "Ribbon Icon" },
-            new IconData { Icon = FluentUI.ribbon_star_24_regular, Description = "Ribbon Star Icon" },
-            new IconData { Icon = FluentUI.trophy_24_regular, Description = "Trophy Icon" },
-            new IconData { Icon = FluentUI.badge_24_regular, Description = "Badge Icon" },
-            new IconData { Icon = FluentUI.book_24_regular, Description = "Book Icon" },
-            new IconData { Icon = FluentUI.people_24_regular, Description = "People Icon" },
-            new IconData { Icon = FluentUI.bot_24_regular, Description = "Bot Icon" }
+            new IconData
+            {
+                Icon = FluentUI.ribbon_24_regular,
+                Description = "Ribbon Icon"
+            },
+
+            new IconData
+            {
+                Icon = FluentUI.ribbon_star_24_regular,
+                Description = "Ribbon Star Icon"
+            },
+
+            new IconData
+            {
+                Icon = FluentUI.trophy_24_regular,
+                Description = "Trophy Icon"
+            },
+
+            new IconData
+            {
+                Icon = FluentUI.badge_24_regular,
+                Description = "Badge Icon"
+            },
+
+            new IconData
+            {
+                Icon = FluentUI.book_24_regular,
+                Description = "Book Icon"
+            },
+
+            new IconData
+            {
+                Icon = FluentUI.people_24_regular,
+                Description = "People Icon"
+            },
+
+            new IconData
+            {
+                Icon = FluentUI.bot_24_regular,
+                Description = "Bot Icon"
+            }
         };
 
         private bool _canDelete;
 
+        // =========================================================
+        // PROPRIEDADES
+        // =========================================================
+
+        public string Name
+        {
+            get => _name;
+            set => SetProperty(ref _name, value);
+        }
+
+        public string Description
+        {
+            get => _description;
+            set => SetProperty(ref _description, value);
+        }
+
+        public List<ProjectTask> Tasks
+        {
+            get => _tasks;
+            set => SetProperty(ref _tasks, value);
+        }
+
+        public List<Category> Categories
+        {
+            get => _categories;
+            set => SetProperty(ref _categories, value);
+        }
+
+        public Category? Category
+        {
+            get => _category;
+            set => SetProperty(ref _category, value);
+        }
+
+        public int CategoryIndex
+        {
+            get => _categoryIndex;
+            set => SetProperty(ref _categoryIndex, value);
+        }
+
+        public List<Tag> AllTags
+        {
+            get => _allTags;
+            set => SetProperty(ref _allTags, value);
+        }
+
+        public IList<object> SelectedTags { get; set; } = new List<object>();
+
+        public IconData Icon
+        {
+            get => _icon;
+            set => SetProperty(ref _icon, value);
+        }
+
+        public bool IsBusy
+        {
+            get => _isBusy;
+            set => SetProperty(ref _isBusy, value);
+        }
+
+        public List<IconData> Icons
+        {
+            get => _icons;
+            set => SetProperty(ref _icons, value);
+        }
+
         public bool CanDelete
         {
             get => _canDelete;
+
             set
             {
-                _canDelete = value;
-                DeleteCommand.NotifyCanExecuteChanged();
+                if (SetProperty(ref _canDelete, value))
+                {
+                    DeleteCommand.NotifyCanExecuteChanged();
+                }
             }
         }
 
-        public bool HasCompletedTasks
-            => _project?.Tasks.Any(t => t.IsCompleted) ?? false;
+        public bool HasCompletedTasks =>
+            _project?.Tasks.Any(t => t.IsCompleted) ?? false;
 
-        public ProjectDetailPageModel(ProjectRepository projectRepository, TaskRepository taskRepository, CategoryRepository categoryRepository, TagRepository tagRepository, ModalErrorHandler errorHandler)
+        // =========================================================
+        // CONSTRUTOR
+        // =========================================================
+
+        public ProjectDetailPageModel(
+            ProjectRepository projectRepository,
+            TaskRepository taskRepository,
+            CategoryRepository categoryRepository,
+            TagRepository tagRepository,
+            ModalErrorHandler errorHandler)
         {
             _projectRepository = projectRepository;
             _taskRepository = taskRepository;
             _categoryRepository = categoryRepository;
             _tagRepository = tagRepository;
             _errorHandler = errorHandler;
-            _icon = _icons.First();
+
+            Icon = Icons.First();
+
             Tasks = [];
         }
 
-        public void ApplyQueryAttributes(IDictionary<string, object> query)
+        // =========================================================
+        // QUERY ATTRIBUTES
+        // =========================================================
+
+        public void ApplyQueryAttributes(
+            IDictionary<string, object> query)
         {
             if (query.ContainsKey("id"))
             {
                 int id = Convert.ToInt32(query["id"]);
-                LoadData(id).FireAndForgetSafeAsync(_errorHandler);
+
+                LoadData(id)
+                    .FireAndForgetSafeAsync(_errorHandler);
             }
             else if (query.ContainsKey("refresh"))
             {
-                RefreshData().FireAndForgetSafeAsync(_errorHandler);
+                RefreshData()
+                    .FireAndForgetSafeAsync(_errorHandler);
             }
             else
             {
-                Task.WhenAll(LoadCategories(), LoadTags()).FireAndForgetSafeAsync(_errorHandler);
+                Task.WhenAll(
+                        LoadCategories(),
+                        LoadTags())
+                    .FireAndForgetSafeAsync(_errorHandler);
+
                 _project = new();
+
                 _project.Tags = [];
                 _project.Tasks = [];
+
                 Tasks = _project.Tasks;
             }
         }
 
-        private async Task LoadCategories() =>
-            Categories = await _categoryRepository.ListAsync();
+        // =========================================================
+        // CATEGORIAS
+        // =========================================================
 
-        private async Task LoadTags() =>
+        private async Task LoadCategories()
+        {
+            Categories = await _categoryRepository.ListAsync();
+        }
+
+        // =========================================================
+        // TAGS
+        // =========================================================
+
+        private async Task LoadTags()
+        {
             AllTags = await _tagRepository.ListAsync();
+        }
+
+        // =========================================================
+        // ATUALIZAR DADOS
+        // =========================================================
 
         private async Task RefreshData()
         {
             if (_project.IsNullOrNew())
             {
                 if (_project is not null)
+                {
                     Tasks = new(_project.Tasks);
+                }
 
                 return;
             }
 
             Tasks = await _taskRepository.ListAsync(_project.ID);
+
             _project.Tasks = Tasks;
         }
+
+        // =========================================================
+        // CARREGAR PROJETO
+        // =========================================================
 
         private async Task LoadData(int id)
         {
@@ -133,13 +277,22 @@ namespace AcademiaDoZe.Presentation.AppMaui.PageModels
 
                 if (_project.IsNullOrNew())
                 {
-                    _errorHandler.HandleError(new Exception($"Project with id {id} could not be found."));
+                    _errorHandler.HandleError(
+                        new Exception(
+                            $"Project with id {id} could not be found."));
+
                     return;
                 }
 
                 Name = _project.Name;
+
                 Description = _project.Description;
+
                 Tasks = _project.Tasks;
+
+                // -------------------------------------------------
+                // ÍCONE
+                // -------------------------------------------------
 
                 foreach (var icon in Icons)
                 {
@@ -150,19 +303,42 @@ namespace AcademiaDoZe.Presentation.AppMaui.PageModels
                     }
                 }
 
-                Categories = await _categoryRepository.ListAsync();
-                Category = Categories?.FirstOrDefault(c => c.ID == _project.CategoryID);
-                CategoryIndex = Categories?.FindIndex(c => c.ID == _project.CategoryID) ?? -1;
+                // -------------------------------------------------
+                // CATEGORIAS
+                // -------------------------------------------------
 
-                var allTags = await _tagRepository.ListAsync();
+                Categories =
+                    await _categoryRepository.ListAsync();
+
+                Category =
+                    Categories?
+                        .FirstOrDefault(
+                            c => c.ID == _project.CategoryID);
+
+                CategoryIndex =
+                    Categories?.FindIndex(
+                        c => c.ID == _project.CategoryID)
+                    ?? -1;
+
+                // -------------------------------------------------
+                // TAGS
+                // -------------------------------------------------
+
+                var allTags =
+                    await _tagRepository.ListAsync();
+
                 foreach (var tag in allTags)
                 {
-                    tag.IsSelected = _project.Tags.Any(t => t.ID == tag.ID);
+                    tag.IsSelected =
+                        _project.Tags.Any(
+                            t => t.ID == tag.ID);
+
                     if (tag.IsSelected)
                     {
                         SelectedTags.Add(tag);
                     }
                 }
+
                 AllTags = new(allTags);
             }
             catch (Exception e)
@@ -172,17 +348,31 @@ namespace AcademiaDoZe.Presentation.AppMaui.PageModels
             finally
             {
                 IsBusy = false;
-                CanDelete = !_project.IsNullOrNew();
-                OnPropertyChanged(nameof(HasCompletedTasks));
+
+                CanDelete =
+                    !_project.IsNullOrNew();
+
+                OnPropertyChanged(
+                    nameof(HasCompletedTasks));
             }
         }
+
+        // =========================================================
+        // CONCLUIR TAREFA
+        // =========================================================
 
         [RelayCommand]
         private async Task TaskCompleted(ProjectTask task)
         {
             await _taskRepository.SaveItemAsync(task);
-            OnPropertyChanged(nameof(HasCompletedTasks));
+
+            OnPropertyChanged(
+                nameof(HasCompletedTasks));
         }
+
+        // =========================================================
+        // SALVAR PROJETO
+        // =========================================================
 
         [RelayCommand]
         private async Task Save()
@@ -190,37 +380,67 @@ namespace AcademiaDoZe.Presentation.AppMaui.PageModels
             if (_project is null)
             {
                 _errorHandler.HandleError(
-                    new Exception("Project is null. Cannot Save."));
+                    new Exception(
+                        "Project is null. Cannot Save."));
 
                 return;
             }
 
             _project.Name = Name;
+
             _project.Description = Description;
-            _project.CategoryID = Category?.ID ?? 0;
-            _project.Icon = Icon.Icon ?? FluentUI.ribbon_24_regular;
-            await _projectRepository.SaveItemAsync(_project);
+
+            _project.CategoryID =
+                Category?.ID ?? 0;
+
+            _project.Icon =
+                Icon.Icon ??
+                FluentUI.ribbon_24_regular;
+
+            await _projectRepository
+                .SaveItemAsync(_project);
+
+            // -------------------------------------------------
+            // SALVAR TAGS
+            // -------------------------------------------------
 
             foreach (var tag in AllTags)
             {
                 if (tag.IsSelected)
                 {
-                    await _tagRepository.SaveItemAsync(tag, _project.ID);
+                    await _tagRepository
+                        .SaveItemAsync(
+                            tag,
+                            _project.ID);
                 }
             }
+
+            // -------------------------------------------------
+            // SALVAR TAREFAS NOVAS
+            // -------------------------------------------------
 
             foreach (var task in _project.Tasks)
             {
                 if (task.ID == 0)
                 {
-                    task.ProjectID = _project.ID;
-                    await _taskRepository.SaveItemAsync(task);
+                    task.ProjectID =
+                        _project.ID;
+
+                    await _taskRepository
+                        .SaveItemAsync(task);
                 }
             }
 
             await Shell.Current.GoToAsync("..");
-            await AppShell.DisplayToastAsync("Project saved");
+
+            await Toast
+                .Make("Project saved")
+                .Show();
         }
+
+        // =========================================================
+        // ADICIONAR TAREFA
+        // =========================================================
 
         [RelayCommand]
         private async Task AddTask()
@@ -228,18 +448,26 @@ namespace AcademiaDoZe.Presentation.AppMaui.PageModels
             if (_project is null)
             {
                 _errorHandler.HandleError(
-                    new Exception("Project is null. Cannot navigate to task."));
+                    new Exception(
+                        "Project is null. Cannot navigate to task."));
 
                 return;
             }
 
-            // Pass the project so if this is a new project we can just add
-            // the tasks to the project and then save them all from here.
-            await Shell.Current.GoToAsync($"task",
-                new ShellNavigationQueryParameters(){
-                    {TaskDetailPageModel.ProjectQueryKey, _project}
+            await Shell.Current.GoToAsync(
+                "task",
+                new ShellNavigationQueryParameters
+                {
+                    {
+                        TaskDetailPageModel.ProjectQueryKey,
+                        _project
+                    }
                 });
         }
+
+        // =========================================================
+        // EXCLUIR PROJETO
+        // =========================================================
 
         [RelayCommand(CanExecute = nameof(CanDelete))]
         private async Task Delete()
@@ -247,17 +475,34 @@ namespace AcademiaDoZe.Presentation.AppMaui.PageModels
             if (_project.IsNullOrNew())
             {
                 await Shell.Current.GoToAsync("..");
+
                 return;
             }
 
-            await _projectRepository.DeleteItemAsync(_project);
+            await _projectRepository
+                .DeleteItemAsync(_project);
+
             await Shell.Current.GoToAsync("..");
-            await AppShell.DisplayToastAsync("Project deleted");
+
+            await Toast
+                .Make("Project deleted")
+                .Show();
         }
 
+        // =========================================================
+        // NAVEGAR PARA TAREFA
+        // =========================================================
+
         [RelayCommand]
-        private Task NavigateToTask(ProjectTask task) =>
-            Shell.Current.GoToAsync($"task?id={task.ID}");
+        private Task NavigateToTask(ProjectTask task)
+        {
+            return Shell.Current
+                .GoToAsync($"task?id={task.ID}");
+        }
+
+        // =========================================================
+        // SELECIONAR / DESSELECIONAR TAG
+        // =========================================================
 
         [RelayCommand]
         internal async Task ToggleTag(Tag tag)
@@ -268,64 +513,124 @@ namespace AcademiaDoZe.Presentation.AppMaui.PageModels
             {
                 if (tag.IsSelected)
                 {
-                    await _tagRepository.SaveItemAsync(tag, _project.ID);
+                    await _tagRepository
+                        .SaveItemAsync(
+                            tag,
+                            _project.ID);
                 }
                 else
                 {
-                    await _tagRepository.DeleteItemAsync(tag, _project.ID);
+                    await _tagRepository
+                        .DeleteItemAsync(
+                            tag,
+                            _project.ID);
                 }
             }
 
             AllTags = new(AllTags);
-            SemanticScreenReader.Announce($"{tag.Title} {(tag.IsSelected ? "selected" : "unselected")}");
+
+            SemanticScreenReader.Announce(
+                $"{tag.Title} " +
+                $"{(tag.IsSelected ? "selected" : "unselected")}");
         }
+
+        // =========================================================
+        // SELECIONAR ÍCONE
+        // =========================================================
 
         [RelayCommand]
         private void IconSelected(IconData icon)
         {
-            SemanticScreenReader.Announce($"{icon.Description} selected");
+            SemanticScreenReader.Announce(
+                $"{icon.Description} selected");
         }
+
+        // =========================================================
+        // LIMPAR TAREFAS CONCLUÍDAS
+        // =========================================================
 
         [RelayCommand]
         private async Task CleanTasks()
         {
-            var completedTasks = Tasks.Where(t => t.IsCompleted).ToArray();
+            var completedTasks =
+                Tasks
+                    .Where(t => t.IsCompleted)
+                    .ToArray();
+
             foreach (var task in completedTasks)
             {
-                await _taskRepository.DeleteItemAsync(task);
+                await _taskRepository
+                    .DeleteItemAsync(task);
+
                 Tasks.Remove(task);
             }
 
             Tasks = new(Tasks);
-            OnPropertyChanged(nameof(HasCompletedTasks));
-            await AppShell.DisplayToastAsync("All cleaned up!");
+
+            OnPropertyChanged(
+                nameof(HasCompletedTasks));
+
+            await Toast
+                .Make("All cleaned up!")
+                .Show();
         }
 
-        [RelayCommand]
-        private async Task SelectionChanged(object parameter)
-        {
-            if (parameter is IEnumerable<object> enumerableParameter)
-            {
-                var currentSelection = enumerableParameter.OfType<Tag>().ToList();
-                var previousSelection = AllTags.Where(t => t.IsSelected).ToList();
+        // =========================================================
+        // ALTERAÇÃO DE SELEÇÃO DE TAGS
+        // =========================================================
 
-                // Handle newly selected tags
-                foreach (var tag in currentSelection.Except(previousSelection))
+        [RelayCommand]
+        private async Task SelectionChanged(
+            object parameter)
+        {
+            if (parameter is IEnumerable<object>
+                enumerableParameter)
+            {
+                var currentSelection =
+                    enumerableParameter
+                        .OfType<Tag>()
+                        .ToList();
+
+                var previousSelection =
+                    AllTags
+                        .Where(t => t.IsSelected)
+                        .ToList();
+
+                // -------------------------------------------------
+                // NOVAS TAGS SELECIONADAS
+                // -------------------------------------------------
+
+                foreach (
+                    var tag in
+                    currentSelection.Except(previousSelection))
                 {
                     tag.IsSelected = true;
+
                     if (!_project.IsNullOrNew())
                     {
-                        await _tagRepository.SaveItemAsync(tag, _project.ID);
+                        await _tagRepository
+                            .SaveItemAsync(
+                                tag,
+                                _project.ID);
                     }
                 }
 
-                // Handle deselected tags
-                foreach (var tag in previousSelection.Except(currentSelection))
+                // -------------------------------------------------
+                // TAGS DESSELECIONADAS
+                // -------------------------------------------------
+
+                foreach (
+                    var tag in
+                    previousSelection.Except(currentSelection))
                 {
                     tag.IsSelected = false;
+
                     if (!_project.IsNullOrNew())
                     {
-                        await _tagRepository.DeleteItemAsync(tag, _project.ID);
+                        await _tagRepository
+                            .DeleteItemAsync(
+                                tag,
+                                _project.ID);
                     }
                 }
             }

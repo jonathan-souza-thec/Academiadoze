@@ -1,4 +1,6 @@
+
 using AcademiaDoZe.Presentation.AppMaui.Models;
+using CommunityToolkit.Maui.Alerts;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -41,8 +43,12 @@ namespace AcademiaDoZe.Presentation.AppMaui.PageModels
         public bool HasCompletedTasks
             => Tasks?.Any(t => t.IsCompleted) ?? false;
 
-        public MainPageModel(SeedDataService seedDataService, ProjectRepository projectRepository,
-            TaskRepository taskRepository, CategoryRepository categoryRepository, ModalErrorHandler errorHandler)
+        public MainPageModel(
+            SeedDataService seedDataService,
+            ProjectRepository projectRepository,
+            TaskRepository taskRepository,
+            CategoryRepository categoryRepository,
+            ModalErrorHandler errorHandler)
         {
             _projectRepository = projectRepository;
             _taskRepository = taskRepository;
@@ -63,12 +69,18 @@ namespace AcademiaDoZe.Presentation.AppMaui.PageModels
                 var chartColors = new List<Brush>();
 
                 var categories = await _categoryRepository.ListAsync();
+
                 foreach (var category in categories)
                 {
                     chartColors.Add(category.ColorBrush);
 
-                    var ps = Projects.Where(p => p.CategoryID == category.ID).ToList();
-                    int tasksCount = ps.SelectMany(p => p.Tasks).Count();
+                    var ps = Projects
+                        .Where(p => p.CategoryID == category.ID)
+                        .ToList();
+
+                    int tasksCount = ps
+                        .SelectMany(p => p.Tasks)
+                        .Count();
 
                     chartData.Add(new(category.Title, tasksCount));
                 }
@@ -95,6 +107,7 @@ namespace AcademiaDoZe.Presentation.AppMaui.PageModels
             }
 
             Preferences.Default.Set("is_seeded", true);
+
             await Refresh();
         }
 
@@ -104,6 +117,7 @@ namespace AcademiaDoZe.Presentation.AppMaui.PageModels
             try
             {
                 IsRefreshing = true;
+
                 await LoadData();
             }
             catch (Exception e)
@@ -130,7 +144,9 @@ namespace AcademiaDoZe.Presentation.AppMaui.PageModels
             if (!_dataLoaded)
             {
                 await InitData(_seedDataService);
+
                 _dataLoaded = true;
+
                 await Refresh();
             }
             // This means we are being navigated to
@@ -144,6 +160,7 @@ namespace AcademiaDoZe.Presentation.AppMaui.PageModels
         private Task TaskCompleted(ProjectTask task)
         {
             OnPropertyChanged(nameof(HasCompletedTasks));
+
             return _taskRepository.SaveItemAsync(task);
         }
 
@@ -153,7 +170,9 @@ namespace AcademiaDoZe.Presentation.AppMaui.PageModels
 
         [RelayCommand]
         private Task? NavigateToProject(Project project)
-            => project is null ? null : Shell.Current.GoToAsync($"project?id={project.ID}");
+            => project is null
+                ? null
+                : Shell.Current.GoToAsync($"project?id={project.ID}");
 
         [RelayCommand]
         private Task NavigateToTask(ProjectTask task)
@@ -162,7 +181,10 @@ namespace AcademiaDoZe.Presentation.AppMaui.PageModels
         [RelayCommand]
         private async Task CleanTasks()
         {
-            var completedTasks = Tasks.Where(t => t.IsCompleted).ToList();
+            var completedTasks = Tasks
+                .Where(t => t.IsCompleted)
+                .ToList();
+
             foreach (var task in completedTasks)
             {
                 await _taskRepository.DeleteItemAsync(task);
@@ -170,8 +192,10 @@ namespace AcademiaDoZe.Presentation.AppMaui.PageModels
             }
 
             OnPropertyChanged(nameof(HasCompletedTasks));
+
             Tasks = new(Tasks);
-            await AppShell.DisplayToastAsync("All cleaned up!");
+
+            await Toast.Make("All cleaned up!").Show();
         }
     }
 }

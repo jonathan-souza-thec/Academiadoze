@@ -1,6 +1,8 @@
+
 using AcademiaDoZe.Presentation.AppMaui.Data;
 using AcademiaDoZe.Presentation.AppMaui.Models;
 using AcademiaDoZe.Presentation.AppMaui.Services;
+using CommunityToolkit.Maui.Alerts;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
@@ -19,7 +21,10 @@ namespace AcademiaDoZe.Presentation.AppMaui.PageModels
         [ObservableProperty]
         private ObservableCollection<Tag> _tags = [];
 
-        public ManageMetaPageModel(CategoryRepository categoryRepository, TagRepository tagRepository, SeedDataService seedDataService)
+        public ManageMetaPageModel(
+            CategoryRepository categoryRepository,
+            TagRepository tagRepository,
+            SeedDataService seedDataService)
         {
             _categoryRepository = categoryRepository;
             _tagRepository = tagRepository;
@@ -30,6 +35,7 @@ namespace AcademiaDoZe.Presentation.AppMaui.PageModels
         {
             var categoriesList = await _categoryRepository.ListAsync();
             Categories = new ObservableCollection<Category>(categoriesList);
+
             var tagsList = await _tagRepository.ListAsync();
             Tags = new ObservableCollection<Tag>(tagsList);
         }
@@ -46,7 +52,7 @@ namespace AcademiaDoZe.Presentation.AppMaui.PageModels
                 await _categoryRepository.SaveItemAsync(category);
             }
 
-            await AppShell.DisplayToastAsync("Categories saved");
+            await Toast.Make("Categories saved").Show();
             SemanticScreenReader.Announce("Categories saved");
         }
 
@@ -54,8 +60,10 @@ namespace AcademiaDoZe.Presentation.AppMaui.PageModels
         private async Task DeleteCategory(Category category)
         {
             Categories.Remove(category);
+
             await _categoryRepository.DeleteItemAsync(category);
-            await AppShell.DisplayToastAsync("Category deleted");
+
+            await Toast.Make("Category deleted").Show();
             SemanticScreenReader.Announce("Category deleted");
         }
 
@@ -63,9 +71,12 @@ namespace AcademiaDoZe.Presentation.AppMaui.PageModels
         private async Task AddCategory()
         {
             var category = new Category();
+
             Categories.Add(category);
+
             await _categoryRepository.SaveItemAsync(category);
-            await AppShell.DisplayToastAsync("Category added");
+
+            await Toast.Make("Category added").Show();
             SemanticScreenReader.Announce("Category added");
         }
 
@@ -77,7 +88,7 @@ namespace AcademiaDoZe.Presentation.AppMaui.PageModels
                 await _tagRepository.SaveItemAsync(tag);
             }
 
-            await AppShell.DisplayToastAsync("Tags saved");
+            await Toast.Make("Tags saved").Show();
             SemanticScreenReader.Announce("Tags saved");
         }
 
@@ -85,8 +96,10 @@ namespace AcademiaDoZe.Presentation.AppMaui.PageModels
         private async Task DeleteTag(Tag tag)
         {
             Tags.Remove(tag);
+
             await _tagRepository.DeleteItemAsync(tag);
-            await AppShell.DisplayToastAsync("Tag deleted");
+
+            await Toast.Make("Tag deleted").Show();
             SemanticScreenReader.Announce("Tags deleted");
         }
 
@@ -94,9 +107,12 @@ namespace AcademiaDoZe.Presentation.AppMaui.PageModels
         private async Task AddTag()
         {
             var tag = new Tag();
+
             Tags.Add(tag);
+
             await _tagRepository.SaveItemAsync(tag);
-            await AppShell.DisplayToastAsync("Tag added");
+
+            await Toast.Make("Tag added").Show();
             SemanticScreenReader.Announce("Tags added");
         }
 
@@ -104,8 +120,11 @@ namespace AcademiaDoZe.Presentation.AppMaui.PageModels
         private async Task Reset()
         {
             Preferences.Default.Remove("is_seeded");
+
             await _seedDataService.LoadSeedDataAsync();
+
             Preferences.Default.Set("is_seeded", true);
+
             await Shell.Current.GoToAsync("//main");
         }
     }
