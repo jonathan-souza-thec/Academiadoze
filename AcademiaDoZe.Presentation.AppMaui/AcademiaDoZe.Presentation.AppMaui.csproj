@@ -29,7 +29,7 @@
 		<MauiEnableXamlCBindingWithSourceCompilation>true</MauiEnableXamlCBindingWithSourceCompilation>
 
 		<!-- Display name -->
-		<ApplicationTitle>AcademiaDoZe.Presentation.AppMaui</ApplicationTitle>
+		<ApplicationTitle>Academia do Zé</ApplicationTitle>
 
 		<!-- App Identifier -->
 		<ApplicationId>com.companyname.academiadoze.presentation.appmaui</ApplicationId>
@@ -49,8 +49,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<!-- App Icon -->
-		<MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#17171a" />
+		<!-- App Icon (logo personalizada) -->
+		<MauiIcon Include="Resources\AppIcon\appicon.png" Color="#FFFFFF" />
 
 		<!-- Splash Screen -->
 		<MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#17171a" BaseSize="128,128" />
@@ -79,22 +79,22 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\AcademiaDoZe.Application\AcademiaDoZe.Application.csproj" />
+		<ProjectReference Include="..\AcademiaDoZe.Application\AcademiaDoZe.Application.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <MauiXaml Update="Views\ConfigPage.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
-	  <MauiXaml Update="Views\DashboardListPage.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
-	  <MauiXaml Update="Views\LogradouroListPage.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
-	  <MauiXaml Update="Views\LogradouroPage.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
+		<MauiXaml Update="Views\ConfigPage.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+		<MauiXaml Update="Views\DashboardListPage.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+		<MauiXaml Update="Views\LogradouroListPage.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+		<MauiXaml Update="Views\LogradouroPage.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
 	</ItemGroup>
-	
+
 </Project>

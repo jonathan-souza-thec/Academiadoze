@@ -1,9 +1,13 @@
-﻿using CommunityToolkit.Mvvm.Messaging.Messages;
+﻿// Jonathan de Souza Pereira
+
+using CommunityToolkit.Mvvm.Messaging.Messages;
 
 namespace AcademiaDoZe.Presentation.AppMaui.Message;
 
-public sealed class TemaPreferencesUpdatedMessage(string value) : ValueChangedMessage<string>(value)
+public class TemaPreferencesUpdatedMessage : ValueChangedMessage<string>
 {
+    public TemaPreferencesUpdatedMessage(string value)
+        : base(value)
+    {
+    }
 }
-
-// ValueChangedMessage<T> é uma classe base do toolkit para mensagens que carregam um valor.
