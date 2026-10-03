@@ -9,7 +9,7 @@ public static class ConfigurationHelper
 {
     public static void ConfigureServices(IServiceCollection services)
     {
-        var databaseType = AppDatabaseType.MySql;
+        var databaseType = AppDatabaseType.MySql; // CORREÇÃO: usar MySQL
 
         string connectionString;
 
@@ -26,10 +26,10 @@ public static class ConfigurationHelper
         }
         else
         {
-            const string dbServer = "10.30.21.16";
+            const string dbServer = "localhost"; // CORREÇÃO: banco no próprio computador
             const string dbDatabase = "db_academia_do_ze";
             const string dbUser = "root";
-            const string dbPassword = "abcBolinhas12345";
+            const string dbPassword = "abcBolinhas12345"; // mesma senha que você definir no MySQL
 
             string dbComplemento = string.Empty;
 
