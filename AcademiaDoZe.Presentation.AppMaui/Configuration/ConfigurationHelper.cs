@@ -9,7 +9,7 @@ public static class ConfigurationHelper
 {
     public static void ConfigureServices(IServiceCollection services)
     {
-        var databaseType = AppDatabaseType.Sqlite;
+        var databaseType = AppDatabaseType.MySql;
 
         string connectionString;
 
