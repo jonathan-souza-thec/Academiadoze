@@ -1,36 +1,63 @@
-
-
+<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:AcademiaDoZe.Presentation.AppMaui.ViewModels"
     x:Class="AcademiaDoZe.Presentation.AppMaui.Views.DashboardListPage"
-    Title="Dashboard">
+    x:DataType="vm:DashboardListViewModel"
+    Title="{Binding Title}">
 
-    <VerticalStackLayout
-        Padding="20"
-        Spacing="20">
+    <Grid>
+        <VerticalStackLayout
+            Padding="20"
+            Spacing="20">
 
-        <Image
-            Source="academiadoze.png"
-            HeightRequest="180"
-            WidthRequest="180"
+            <Image
+                Source="academiadoze.png"
+                HeightRequest="180"
+                WidthRequest="180"
+                HorizontalOptions="Center" />
+
+            <Label
+                Text="Academia do Zé"
+                FontSize="28"
+                FontAttributes="Bold"
+                HorizontalOptions="Center" />
+
+            <Label
+                Text="Sistema de Gerenciamento"
+                FontSize="18"
+                HorizontalOptions="Center" />
+
+            <!-- Total de itens exigido no vídeo da entrega -->
+            <Border
+                Padding="20"
+                StrokeThickness="1"
+                HorizontalOptions="Center">
+                <VerticalStackLayout Spacing="5">
+                    <Label
+                        Text="{Binding TotalLogradouros}"
+                        FontSize="36"
+                        FontAttributes="Bold"
+                        HorizontalOptions="Center" />
+                    <Label
+                        Text="Logradouros cadastrados"
+                        HorizontalOptions="Center" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Command no lugar de Clicked="OnLogradourosClicked" (esse método não existia) -->
+            <Button
+                Text="Abrir Logradouros"
+                Command="{Binding NavigateToLogradourosCommand}" />
+
+        </VerticalStackLayout>
+
+        <ActivityIndicator
+            IsVisible="{Binding IsBusy}"
+            IsRunning="{Binding IsBusy}"
+            VerticalOptions="Center"
             HorizontalOptions="Center" />
-
-        <Label
-            Text="Academia do Zé"
-            FontSize="28"
-            FontAttributes="Bold"
-            HorizontalOptions="Center" />
-
-        <Label
-            Text="Sistema de Gerenciamento"
-            FontSize="18"
-            HorizontalOptions="Center" />
-
-        <Button
-            Text="Abrir Logradouros"
-            Clicked="OnLogradourosClicked" />
-
-    </VerticalStackLayout>
+    </Grid>
 
 </ContentPage>

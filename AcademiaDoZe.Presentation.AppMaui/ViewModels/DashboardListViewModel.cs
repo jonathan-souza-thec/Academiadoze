@@ -7,20 +7,21 @@ namespace AcademiaDoZe.Presentation.AppMaui.ViewModels;
 
 public partial class DashboardListViewModel : BaseViewModel
 {
-    private readonly IAcessoAlunoService _acessoAlunoService;
+    // CORREÇÃO: usa ILogradouroService (a funcionalidade desta etapa).
+    // IAcessoAlunoService é da Avaliação 03 e não conta logradouros.
+    private readonly ILogradouroService _logradouroService;
 
-    private int _totalAcessos;
+    private int _totalLogradouros;
 
-    public int TotalAcessos
+    public int TotalLogradouros
     {
-        get => _totalAcessos;
-        set => SetProperty(ref _totalAcessos, value);
+        get => _totalLogradouros;
+        set => SetProperty(ref _totalLogradouros, value);
     }
 
-    public DashboardListViewModel(
-        IAcessoAlunoService acessoAlunoService)
+    public DashboardListViewModel(ILogradouroService logradouroService)
     {
-        _acessoAlunoService = acessoAlunoService;
+        _logradouroService = logradouroService;
 
         Title = "Dashboard";
     }
@@ -35,17 +36,26 @@ public partial class DashboardListViewModel : BaseViewModel
         {
             IsBusy = true;
 
-            var acessos = await _acessoAlunoService.ObterTodosAsync();
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+            var logradouros = await _logradouroService.ObterTodosAsync(cts.Token);
 
-            TotalAcessos = acessos?.Count() ?? 0;
+            TotalLogradouros = logradouros?.Count() ?? 0;
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            TotalAcessos = 0;
+            TotalLogradouros = 0;
+            await Shell.Current.DisplayAlertAsync("Erro", $"Erro ao carregar o dashboard: {ex.Message}", "OK");
         }
         finally
         {
             IsBusy = false;
         }
+    }
+
+    // CORREÇÃO: navegação para a lista via rota "logradouros" do AppShell.xaml
+    [RelayCommand]
+    private async Task NavigateToLogradourosAsync()
+    {
+        await Shell.Current.GoToAsync("//logradouros");
     }
 }
