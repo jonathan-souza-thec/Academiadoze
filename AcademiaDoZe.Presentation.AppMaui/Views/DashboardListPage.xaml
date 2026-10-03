@@ -12,11 +12,18 @@
             Padding="20"
             Spacing="20">
 
-            <Image
-                Source="academiadoze.png"
-                HeightRequest="180"
-                WidthRequest="180"
-                HorizontalOptions="Center" />
+            <!-- Fundo branco: a logo (com o seu nome) fica visível também no tema escuro -->
+            <Border
+                BackgroundColor="White"
+                StrokeThickness="0"
+                StrokeShape="RoundRectangle 16"
+                HorizontalOptions="Center"
+                Padding="8">
+                <Image
+                    Source="academiadoze.png"
+                    HeightRequest="200"
+                    WidthRequest="200" />
+            </Border>
 
             <Label
                 Text="Academia do Zé"
@@ -29,12 +36,17 @@
                 FontSize="18"
                 HorizontalOptions="Center" />
 
-            <!-- Total de itens exigido no vídeo da entrega -->
+            <!-- Total de itens -->
             <Border
                 Padding="20"
                 StrokeThickness="1"
                 HorizontalOptions="Center">
                 <VerticalStackLayout Spacing="5">
+                    <Label
+                        FontFamily="MaterialIcons"
+                        Text="&#xe7f1;"
+                        FontSize="32"
+                        HorizontalOptions="Center" />
                     <Label
                         Text="{Binding TotalLogradouros}"
                         FontSize="36"
@@ -46,10 +58,13 @@
                 </VerticalStackLayout>
             </Border>
 
-            <!-- Command no lugar de Clicked="OnLogradourosClicked" (esse método não existia) -->
             <Button
                 Text="Abrir Logradouros"
-                Command="{Binding NavigateToLogradourosCommand}" />
+                Command="{Binding NavigateToLogradourosCommand}">
+                <Button.ImageSource>
+                    <FontImageSource FontFamily="MaterialIcons" Glyph="&#xe7f1;" />
+                </Button.ImageSource>
+            </Button>
 
         </VerticalStackLayout>
 
