@@ -1,38 +1,13 @@
-﻿ using AcademiaDoZe.Presentation.AppMaui.Message;
-using CommunityToolkit.Mvvm.Messaging;
+﻿<?xml version="1.0" encoding="UTF-8" ?>
 
-namespace AcademiaDoZe.Presentation.AppMaui;
+<Application
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="AcademiaDoZe.Presentation.AppMaui.App">
 
-// Application conflita com o nome da nossa camada de aplicação.
-// Usamos o namespace completo para apontar para a classe Application do MAUI.
-public partial class App : Microsoft.Maui.Controls.Application
-{
-    public App()
-    {
-        InitializeComponent();
+    <Application.Resources>
+        <ResourceDictionary>
+        </ResourceDictionary>
+    </Application.Resources>
 
-        // aplicar o tema salvo nas preferências
-        AplicarTema();
-
-        // sempre que o usuário alterar o tema, a mensagem é enviada e o tema é reaplicado
-        WeakReferenceMessenger.Default.Register<TemaPreferencesUpdatedMessage>(this, (r, m) =>
-        {
-            AplicarTema();
-        });
-    }
-
-    protected override Window CreateWindow(IActivationState? activationState)
-    {
-        return new Window(new AppShell());
-    }
-
-    private void AplicarTema()
-    {
-        UserAppTheme = Preferences.Get("Tema", "system") switch
-        {
-            "light" => AppTheme.Light,
-            "dark" => AppTheme.Dark,
-            _ => AppTheme.Unspecified,
-        };
-    }
-}
+</Application>
