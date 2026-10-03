@@ -1,4 +1,5 @@
 ﻿// Jonathan de Souza Pereira
+
 using AcademiaDoZe.Application.Interfaces;
 using CommunityToolkit.Mvvm.Input;
 
@@ -8,18 +9,43 @@ public partial class DashboardListViewModel : BaseViewModel
 {
     private readonly IAcessoAlunoService _acessoAlunoService;
 
-    public DashboardListViewModel(IAcessoAlunoService acessoAlunoService)
+    private int _totalAcessos;
+
+    public int TotalAcessos
+    {
+        get => _totalAcessos;
+        set => SetProperty(ref _totalAcessos, value);
+    }
+
+    public DashboardListViewModel(
+        IAcessoAlunoService acessoAlunoService)
     {
         _acessoAlunoService = acessoAlunoService;
+
+        Title = "Dashboard";
     }
 
     [RelayCommand]
-    private async Task LoadDashboardDataAsync()
+    public async Task LoadDashboardDataAsync()
     {
-        // Carregamento dos dados do dashboard
-        var acessos = await _acessoAlunoService.ObterTodosAsync();
+        if (IsBusy)
+            return;
 
-        // Coloque aqui as propriedades que serão
-        // preenchidas com os dados do dashboard.
+        try
+        {
+            IsBusy = true;
+
+            var acessos = await _acessoAlunoService.ObterTodosAsync();
+
+            TotalAcessos = acessos?.Count() ?? 0;
+        }
+        catch (Exception)
+        {
+            TotalAcessos = 0;
+        }
+        finally
+        {
+            IsBusy = false;
+        }
     }
 }

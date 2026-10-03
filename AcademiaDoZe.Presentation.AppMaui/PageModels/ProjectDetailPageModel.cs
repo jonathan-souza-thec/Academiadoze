@@ -1,5 +1,5 @@
+
 using AcademiaDoZe.Presentation.AppMaui.Models;
-using Android.App;
 using CommunityToolkit.Maui.Alerts;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -11,6 +11,8 @@ namespace AcademiaDoZe.Presentation.AppMaui.PageModels
         IQueryAttributable,
         IProjectTaskPageModel
     {
+
+
         private Project? _project;
 
         private readonly ProjectRepository _projectRepository;
