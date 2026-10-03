@@ -1,4 +1,3 @@
-
 using AcademiaDoZe.Presentation.AppMaui.Models;
 using CommunityToolkit.Maui.Alerts;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -36,7 +35,7 @@ namespace AcademiaDoZe.Presentation.AppMaui.PageModels
 
         private List<Tag> _allTags = [];
 
-        private IconData _icon;
+        private IconData _icon = null!;
 
         private bool _isBusy;
 
