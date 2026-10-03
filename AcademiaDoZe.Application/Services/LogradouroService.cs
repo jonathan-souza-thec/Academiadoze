@@ -10,26 +10,43 @@ public class LogradouroService : ILogradouroService
 {
     private readonly Func<ILogradouroRepository> _repositoryFactory;
 
-    public LogradouroService(Func<ILogradouroRepository> repositoryFactory)
+    public LogradouroService(
+        Func<ILogradouroRepository> repositoryFactory)
     {
         _repositoryFactory = repositoryFactory;
     }
 
-    public async Task<LogradouroDto?> ObterPorIdAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<LogradouroDto?> ObterPorIdAsync(
+        int id,
+        CancellationToken cancellationToken = default)
     {
         var repository = _repositoryFactory();
-        var entity = await repository.ObterPorId(id, cancellationToken);
-        return entity is null ? null : MapToDto(entity);
+
+        var entity =
+            await repository.ObterPorId(
+                id,
+                cancellationToken);
+
+        return entity is null
+            ? null
+            : MapToDto(entity);
     }
 
-    public async Task<IEnumerable<LogradouroDto>> ObterTodosAsync(CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<LogradouroDto>> ObterTodosAsync(
+        CancellationToken cancellationToken = default)
     {
         var repository = _repositoryFactory();
-        var entities = await repository.ObterTodos(cancellationToken);
+
+        var entities =
+            await repository.ObterTodos(
+                cancellationToken);
+
         return entities.Select(MapToDto);
     }
 
-    public async Task<LogradouroDto> AdicionarAsync(LogradouroDto logradouroDto, CancellationToken cancellationToken = default)
+    public async Task<LogradouroDto> AdicionarAsync(
+        LogradouroDto logradouroDto,
+        CancellationToken cancellationToken = default)
     {
         var resultado = Logradouro.Criar(
             id: 0,
@@ -41,14 +58,27 @@ public class LogradouroService : ILogradouroService
             pais: logradouroDto.Pais);
 
         if (resultado.IsFailure)
-            throw new ArgumentException(string.Join(", ", resultado.Notifications.Select(n => n.Mensagem)));
+        {
+            throw new ArgumentException(
+                string.Join(
+                    ", ",
+                    resultado.Notifications.Select(
+                        n => n.Mensagem)));
+        }
 
         var repository = _repositoryFactory();
-        var salvo = await repository.Adicionar(resultado.Value!, cancellationToken);
+
+        var salvo =
+            await repository.Adicionar(
+                resultado.Value!,
+                cancellationToken);
+
         return MapToDto(salvo);
     }
 
-    public async Task<LogradouroDto> AtualizarAsync(LogradouroDto logradouroDto, CancellationToken cancellationToken = default)
+    public async Task<LogradouroDto> AtualizarAsync(
+        LogradouroDto logradouroDto,
+        CancellationToken cancellationToken = default)
     {
         var resultado = Logradouro.Criar(
             id: logradouroDto.Id,
@@ -60,46 +90,86 @@ public class LogradouroService : ILogradouroService
             pais: logradouroDto.Pais);
 
         if (resultado.IsFailure)
-            throw new ArgumentException(string.Join(", ", resultado.Notifications.Select(n => n.Mensagem)));
+        {
+            throw new ArgumentException(
+                string.Join(
+                    ", ",
+                    resultado.Notifications.Select(
+                        n => n.Mensagem)));
+        }
 
         var repository = _repositoryFactory();
-        var atualizado = await repository.Atualizar(resultado.Value!, cancellationToken);
+
+        var atualizado =
+            await repository.Atualizar(
+                resultado.Value!,
+                cancellationToken);
+
         return MapToDto(atualizado);
     }
 
-    public async Task<bool> RemoverAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<bool> RemoverAsync(
+        int id,
+        CancellationToken cancellationToken = default)
     {
         var repository = _repositoryFactory();
-        return await repository.Remover(id, cancellationToken);
+
+        return await repository.Remover(
+            id,
+            cancellationToken);
     }
 
-    public async Task<LogradouroDto?> ObterPorCepAsync(string cep, CancellationToken cancellationToken = default)
+    public async Task<LogradouroDto?> ObterPorCepAsync(
+        string cep,
+        CancellationToken cancellationToken = default)
     {
-        // ATENÇÃO: assume que Cep tem um método estático Criar(string) => Result<Cep>.
+        // Converte string para o Value Object Cep.
         var cepResultado = Cep.Criar(cep);
+
         if (cepResultado.IsFailure)
+        {
             return null;
+        }
 
         var repository = _repositoryFactory();
-        var entity = await repository.ObterPorCep(cepResultado.Value!, cancellationToken);
-        return entity is null ? null : MapToDto(entity);
+
+        var entity =
+            await repository.ObterPorCep(
+                cepResultado.Value!,
+                cancellationToken);
+
+        return entity is null
+            ? null
+            : MapToDto(entity);
     }
 
-    public async Task<IEnumerable<LogradouroDto>> ObterPorCidadeAsync(string cidade, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<LogradouroDto>>
+        ObterPorCidadeAsync(
+            string cidade,
+            CancellationToken cancellationToken = default)
     {
         var repository = _repositoryFactory();
-        var entities = await repository.ObterPorCidade(cidade, cancellationToken);
+
+        var entities =
+            await repository.ObterPorCidade(
+                cidade,
+                cancellationToken);
+
         return entities.Select(MapToDto);
     }
 
-    private static LogradouroDto MapToDto(Logradouro entity) => new()
+    private static LogradouroDto MapToDto(
+        Logradouro entity)
     {
-        Id = entity.Id,
-        Cep = entity.Cep.Valor,
-        Nome = entity.Nome,
-        Bairro = entity.Bairro,
-        Cidade = entity.Cidade,
-        Estado = entity.Estado,
-        Pais = entity.Pais
-    };
+        return new LogradouroDto
+        {
+            Id = entity.Id,
+            Cep = entity.Cep.Valor,
+            Nome = entity.Nome,
+            Bairro = entity.Bairro,
+            Cidade = entity.Cidade,
+            Estado = entity.Estado,
+            Pais = entity.Pais
+        };
+    }
 }

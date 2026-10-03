@@ -17,9 +17,12 @@ public static class ConfigurationHelper
         {
             var dbPath = DeviceInfo.Platform == DevicePlatform.WinUI
                 ? @"C:\DEV\AcademiaDoZe\db_academia_do_ze.db"
-                : Path.Combine(FileSystem.AppDataDirectory, "db_academia_do_ze.db");
+                : Path.Combine(
+                    FileSystem.AppDataDirectory,
+                    "db_academia_do_ze.db");
 
-            connectionString = $"Data Source={dbPath};Default Timeout=5;";
+            connectionString =
+                $"Data Source={dbPath};Default Timeout=5;";
         }
         else
         {
@@ -29,16 +32,28 @@ public static class ConfigurationHelper
             const string dbPassword = "abcBolinhas12345";
 
             string dbComplemento = string.Empty;
+
             if (databaseType == AppDatabaseType.SqlServer)
             {
-                dbComplemento = "TrustServerCertificate=True;Encrypt=True;Connect Timeout=5;Connection Timeout=5;";
+                dbComplemento =
+                    "TrustServerCertificate=True;" +
+                    "Encrypt=True;" +
+                    "Connect Timeout=5;" +
+                    "Connection Timeout=5;";
             }
             else if (databaseType == AppDatabaseType.MySql)
             {
-                dbComplemento = "Connection Timeout=5;Default Command Timeout=30;";
+                dbComplemento =
+                    "Connection Timeout=5;" +
+                    "Default Command Timeout=30;";
             }
 
-            connectionString = $"Server={dbServer};Database={dbDatabase};User Id={dbUser};Password={dbPassword};{dbComplemento}";
+            connectionString =
+                $"Server={dbServer};" +
+                $"Database={dbDatabase};" +
+                $"User Id={dbUser};" +
+                $"Password={dbPassword};" +
+                dbComplemento;
         }
 
         services.AddSingleton(new RepositoryConfig

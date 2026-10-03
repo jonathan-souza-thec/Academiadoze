@@ -30,7 +30,7 @@ public partial class LogradouroListPage : ContentPage
                 await viewModel.EditLogradouroCommand.ExecuteAsync(logradouro);
             }
         }
-        catch (Exception ex) { await DisplayAlert("Erro", $"Erro ao editar logradouro: {ex.Message}", "OK"); }
+        catch (Exception ex) { await Shell.Current.DisplayAlertAsync("Erro", $"Erro ao editar logradouro: {ex.Message}", "OK"); }
     }
 
     private async void OnDeleteButtonClicked(object? sender, EventArgs e)
@@ -42,6 +42,6 @@ public partial class LogradouroListPage : ContentPage
                 await viewModel.DeleteLogradouroCommand.ExecuteAsync(logradouro);
             }
         }
-        catch (Exception ex) { await DisplayAlert("Erro", $"Erro ao excluir logradouro: {ex.Message}", "OK"); }
+        catch (Exception ex) { await Shell.Current.DisplayAlertAsync("Erro", $"Erro ao excluir logradouro: {ex.Message}", "OK"); }
     }
 }

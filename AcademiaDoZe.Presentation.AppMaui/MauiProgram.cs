@@ -1,6 +1,6 @@
-﻿using AcademiaDoZe.Presentation.AppMaui.ViewModels;
+﻿using AcademiaDoZe.Presentation.AppMaui.Configuration;
+using AcademiaDoZe.Presentation.AppMaui.ViewModels;
 using AcademiaDoZe.Presentation.AppMaui.Views;
-using AcademiaDoZe.Presentation.AppMaui.Configuration;
 using CommunityToolkit.Maui;
 using Microsoft.Extensions.Logging;
 
@@ -11,16 +11,23 @@ public static class MauiProgram
     public static MauiApp CreateMauiApp()
     {
         var builder = MauiApp.CreateBuilder();
+
         builder
             .UseMauiApp<App>()
             .UseMauiCommunityToolkit()
             .ConfigureFonts(fonts =>
             {
-                fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
-                fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+                fonts.AddFont(
+                    "OpenSans-Regular.ttf",
+                    "OpenSansRegular");
+
+                fonts.AddFont(
+                    "OpenSans-Semibold.ttf",
+                    "OpenSansSemibold");
             });
 
-        ConfigurationHelper.ConfigureServices(builder.Services);
+        ConfigurationHelper.ConfigureServices(
+            builder.Services);
 
         builder.Services.AddTransient<DashboardListViewModel>();
         builder.Services.AddTransient<LogradouroListViewModel>();

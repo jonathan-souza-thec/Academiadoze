@@ -1,4 +1,5 @@
-﻿using AcademiaDoZe.Application.DTOs;
+﻿// Jonathan de Souza Pereira
+using AcademiaDoZe.Application.DTOs;
 using AcademiaDoZe.Application.Interfaces;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
@@ -9,26 +10,47 @@ public partial class LogradouroListViewModel : BaseViewModel
 {
     private readonly ILogradouroService _logradouroService;
 
-    public ObservableCollection<string> FilterTypes { get; } = ["Cidade", "Id", "Cep"];
+    public ObservableCollection<string> FilterTypes { get; } =
+        ["Cidade", "Id", "Cep"];
 
     private ObservableCollection<LogradouroDto> _logradouros = [];
-    public ObservableCollection<LogradouroDto> Logradouros { get => _logradouros; set => SetProperty(ref _logradouros, value); }
+
+    public ObservableCollection<LogradouroDto> Logradouros
+    {
+        get => _logradouros;
+        set => SetProperty(ref _logradouros, value);
+    }
 
     private LogradouroDto? _selectedLogradouro;
-    public LogradouroDto? SelectedLogradouro { get => _selectedLogradouro; set => SetProperty(ref _selectedLogradouro, value); }
+
+    public LogradouroDto? SelectedLogradouro
+    {
+        get => _selectedLogradouro;
+        set => SetProperty(ref _selectedLogradouro, value);
+    }
 
     private string _searchText = string.Empty;
+
     public string SearchText
     {
         get => _searchText;
         set => SetProperty(ref _searchText, value);
     }
 
-    private string _selectedFilterType = "Cidade"; // Cidade, Id, Cep
+    private string _selectedFilterType = "Cidade";
+
     public string SelectedFilterType
     {
         get => _selectedFilterType;
         set => SetProperty(ref _selectedFilterType, value);
+    }
+
+    private bool _isRefreshing;
+
+    public bool IsRefreshing
+    {
+        get => _isRefreshing;
+        set => SetProperty(ref _isRefreshing, value);
     }
 
     public LogradouroListViewModel(ILogradouroService logradouroService)
@@ -46,7 +68,10 @@ public partial class LogradouroListViewModel : BaseViewModel
         }
         catch (Exception ex)
         {
-            await Shell.Current.DisplayAlertAsync("Erro", $"Erro ao navegar para tela de cadastro: {ex.Message}", "OK");
+            await Shell.Current.DisplayAlertAsync(
+                "Erro",
+                $"Erro ao navegar para tela de cadastro: {ex.Message}",
+                "OK");
         }
     }
 
@@ -58,11 +83,15 @@ public partial class LogradouroListViewModel : BaseViewModel
             if (logradouro == null)
                 return;
 
-            await Shell.Current.GoToAsync($"logradouro?Id={logradouro.Id}");
+            await Shell.Current.GoToAsync(
+                $"logradouro?Id={logradouro.Id}");
         }
         catch (Exception ex)
         {
-            await Shell.Current.DisplayAlertAsync("Erro", $"Erro ao navegar para tela de edição: {ex.Message}", "OK");
+            await Shell.Current.DisplayAlertAsync(
+                "Erro",
+                $"Erro ao navegar para tela de edição: {ex.Message}",
+                "OK");
         }
     }
 
@@ -90,40 +119,76 @@ public partial class LogradouroListViewModel : BaseViewModel
 
             IEnumerable<LogradouroDto> resultados = [];
 
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+            using var cts = new CancellationTokenSource(
+                TimeSpan.FromSeconds(5));
 
             if (string.IsNullOrWhiteSpace(SearchText))
             {
-                resultados = await _logradouroService.ObterTodosAsync(cts.Token) ?? [];
+                resultados =
+                    await _logradouroService.ObterTodosAsync(
+                        cts.Token);
             }
             else if (SelectedFilterType == "Cidade")
             {
-                resultados = await _logradouroService.ObterPorCidadeAsync(SearchText.Trim(), cts.Token) ?? [];
+                resultados =
+                    await _logradouroService.ObterPorCidadeAsync(
+                        SearchText.Trim(),
+                        cts.Token);
             }
             else if (SelectedFilterType == "Id")
             {
-                if (!int.TryParse(SearchText.Trim(), out int id) || id <= 0)
+                if (!int.TryParse(
+                        SearchText.Trim(),
+                        out int id) ||
+                    id <= 0)
                 {
-                    await Shell.Current.DisplayAlertAsync("Validação", "Para buscar por ID, informe um número inteiro positivo válido.", "OK");
+                    await Shell.Current.DisplayAlertAsync(
+                        "Validação",
+                        "Para buscar por ID, informe um número inteiro positivo válido.",
+                        "OK");
+
                     return;
                 }
 
-                var logradouro = await _logradouroService.ObterPorIdAsync(id, cts.Token);
+                var logradouro =
+                    await _logradouroService.ObterPorIdAsync(
+                        id,
+                        cts.Token);
+
                 if (logradouro != null)
+                {
                     resultados = [logradouro];
+                }
             }
             else if (SelectedFilterType == "Cep")
             {
-                var cepLimpo = new string([.. SearchText.Where(char.IsDigit)]);
+                var cepLimpo =
+                    new string(
+                        [.. SearchText.Where(char.IsDigit)]);
+
                 if (cepLimpo.Length != 8)
                 {
-                    await Shell.Current.DisplayAlertAsync("Validação", "Para buscar por CEP, informe os 8 dígitos numéricos.", "OK");
+                    await Shell.Current.DisplayAlertAsync(
+                        "Validação",
+                        "Para buscar por CEP, informe os 8 dígitos numéricos.",
+                        "OK");
+
                     return;
                 }
 
-                var logradouro = await _logradouroService.ObterPorCepAsync(cepLimpo, cts.Token);
+                // ObterPorCepAsync retorna um único LogradouroDto
+                // ou null.
+                var logradouro =
+                    await _logradouroService.ObterPorCepAsync(
+                        cepLimpo,
+                        cts.Token);
+
+                // Transformamos o resultado único em uma coleção
+                // para poder exibi-lo na lista.
                 if (logradouro != null)
+                {
                     resultados = [logradouro];
+                }
             }
 
             await MainThread.InvokeOnMainThreadAsync(() =>
@@ -132,16 +197,23 @@ public partial class LogradouroListViewModel : BaseViewModel
                 {
                     Logradouros.Add(item);
                 }
+
                 OnPropertyChanged(nameof(Logradouros));
             });
         }
         catch (OperationCanceledException)
         {
-            await Shell.Current.DisplayAlertAsync("Tempo Esgotado", "A busca expirou. Verifique a conexão com o banco.", "OK");
+            await Shell.Current.DisplayAlertAsync(
+                "Tempo Esgotado",
+                "A busca expirou. Verifique a conexão com o banco.",
+                "OK");
         }
         catch (Exception ex)
         {
-            await Shell.Current.DisplayAlertAsync("Erro", $"Erro ao buscar logradouros: {ex.Message}", "OK");
+            await Shell.Current.DisplayAlertAsync(
+                "Erro",
+                $"Erro ao buscar logradouros: {ex.Message}",
+                "OK");
         }
         finally
         {
@@ -165,29 +237,36 @@ public partial class LogradouroListViewModel : BaseViewModel
                 OnPropertyChanged(nameof(Logradouros));
             });
 
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-            var logradourosList = await _logradouroService.ObterTodosAsync(cts.Token);
+            using var cts = new CancellationTokenSource(
+                TimeSpan.FromSeconds(5));
 
-            if (logradourosList != null)
+            var logradourosList =
+                await _logradouroService.ObterTodosAsync(
+                    cts.Token);
+
+            await MainThread.InvokeOnMainThreadAsync(() =>
             {
-                await MainThread.InvokeOnMainThreadAsync(() =>
+                foreach (var logradouro in logradourosList)
                 {
-                    foreach (var logradouro in logradourosList)
-                    {
-                        Logradouros.Add(logradouro);
-                    }
+                    Logradouros.Add(logradouro);
+                }
 
-                    OnPropertyChanged(nameof(Logradouros));
-                });
-            }
+                OnPropertyChanged(nameof(Logradouros));
+            });
         }
         catch (OperationCanceledException)
         {
-            await Shell.Current.DisplayAlertAsync("Tempo Esgotado", "O carregamento dos logradouros expirou. Verifique a conexão.", "OK");
+            await Shell.Current.DisplayAlertAsync(
+                "Tempo Esgotado",
+                "O carregamento dos logradouros expirou. Verifique a conexão.",
+                "OK");
         }
         catch (Exception ex)
         {
-            await Shell.Current.DisplayAlertAsync("Erro", $"Erro ao carregar logradouros: {ex.Message}", "OK");
+            await Shell.Current.DisplayAlertAsync(
+                "Erro",
+                $"Erro ao carregar logradouros: {ex.Message}",
+                "OK");
         }
         finally
         {
@@ -197,15 +276,18 @@ public partial class LogradouroListViewModel : BaseViewModel
     }
 
     [RelayCommand]
-    private async Task DeleteLogradouroAsync(LogradouroDto logradouro)
+    private async Task DeleteLogradouroAsync(
+        LogradouroDto logradouro)
     {
         if (logradouro == null)
             return;
 
-        bool confirm = await Shell.Current.DisplayAlertAsync(
-            "Confirmar Exclusão",
-            $"Deseja realmente excluir o logradouro {logradouro.Nome}?",
-            "Sim", "Não");
+        bool confirm =
+            await Shell.Current.DisplayAlertAsync(
+                "Confirmar Exclusão",
+                $"Deseja realmente excluir o logradouro {logradouro.Nome}?",
+                "Sim",
+                "Não");
 
         if (!confirm)
             return;
@@ -213,35 +295,62 @@ public partial class LogradouroListViewModel : BaseViewModel
         try
         {
             IsBusy = true;
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-            bool success = await _logradouroService.RemoverAsync(logradouro.Id, cts.Token);
+
+            using var cts = new CancellationTokenSource(
+                TimeSpan.FromSeconds(5));
+
+            bool success =
+                await _logradouroService.RemoverAsync(
+                    logradouro.Id,
+                    cts.Token);
 
             if (success)
             {
                 Logradouros.Remove(logradouro);
-                await Shell.Current.DisplayAlertAsync("Sucesso", "Logradouro excluído com sucesso!", "OK");
+
+                await Shell.Current.DisplayAlertAsync(
+                    "Sucesso",
+                    "Logradouro excluído com sucesso!",
+                    "OK");
             }
             else
             {
-                await Shell.Current.DisplayAlertAsync("Erro", "Não foi possível excluir o logradouro.", "OK");
+                await Shell.Current.DisplayAlertAsync(
+                    "Erro",
+                    "Não foi possível excluir o logradouro.",
+                    "OK");
             }
         }
         catch (OperationCanceledException)
         {
-            await Shell.Current.DisplayAlertAsync("Tempo Esgotado", "A exclusão do logradouro expirou. Verifique a conexão.", "OK");
+            await Shell.Current.DisplayAlertAsync(
+                "Tempo Esgotado",
+                "A exclusão do logradouro expirou. Verifique a conexão.",
+                "OK");
         }
         catch (Exception ex)
         {
-            if (ex.Message.Contains("FOREIGN KEY", StringComparison.OrdinalIgnoreCase) ||
-                ex.Message.Contains("constraint", StringComparison.OrdinalIgnoreCase) ||
-                ex.Message.Contains("REFERENCE", StringComparison.OrdinalIgnoreCase))
+            if (ex.Message.Contains(
+                    "FOREIGN KEY",
+                    StringComparison.OrdinalIgnoreCase) ||
+                ex.Message.Contains(
+                    "constraint",
+                    StringComparison.OrdinalIgnoreCase) ||
+                ex.Message.Contains(
+                    "REFERENCE",
+                    StringComparison.OrdinalIgnoreCase))
             {
-                await Shell.Current.DisplayAlertAsync("Não Permitido",
-                    "Este logradouro não pode ser excluído pois está vinculado a alunos ou colaboradores cadastrados.", "OK");
+                await Shell.Current.DisplayAlertAsync(
+                    "Não Permitido",
+                    "Este logradouro não pode ser excluído pois está vinculado a alunos ou colaboradores cadastrados.",
+                    "OK");
             }
             else
             {
-                await Shell.Current.DisplayAlertAsync("Erro", $"Erro ao excluir logradouro: {ex.Message}", "OK");
+                await Shell.Current.DisplayAlertAsync(
+                    "Erro",
+                    $"Erro ao excluir logradouro: {ex.Message}",
+                    "OK");
             }
         }
         finally
