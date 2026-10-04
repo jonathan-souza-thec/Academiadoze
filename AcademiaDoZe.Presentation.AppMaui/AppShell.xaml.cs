@@ -1,4 +1,4 @@
-﻿using AcademiaDoZe.Presentation.AppMaui.Views;
+﻿// Jonathan de Souza Pereira
 
 namespace AcademiaDoZe.Presentation.AppMaui;
 
@@ -7,11 +7,5 @@ public partial class AppShell : Shell
     public AppShell()
     {
         InitializeComponent();
-        RegisterRoutes();
-    }
-
-    private static void RegisterRoutes()
-    {
-        Routing.RegisterRoute("logradouro", typeof(LogradouroPage));
     }
 }

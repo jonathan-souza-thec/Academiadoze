@@ -1,31 +1,60 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+
 <Shell
     x:Class="AcademiaDoZe.Presentation.AppMaui.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:local="clr-namespace:AcademiaDoZe.Presentation.AppMaui"
     xmlns:views="clr-namespace:AcademiaDoZe.Presentation.AppMaui.Views"
     Title="Academia do Zé">
 
     <FlyoutItem Title="Dashboard">
+
         <FlyoutItem.Icon>
-            <FontImageSource FontFamily="MaterialIcons" Glyph="&#xe871;" />
+
+            <FontImageSource
+                FontFamily="MaterialIcons"
+                Glyph="&#xe871;" />
+
         </FlyoutItem.Icon>
-        <ShellContent ContentTemplate="{DataTemplate views:DashboardListPage}" Route="dashboard" />
+
+        <ShellContent
+            ContentTemplate="{DataTemplate views:DashboardListPage}"
+            Route="dashboard" />
+
     </FlyoutItem>
+
 
     <FlyoutItem Title="Logradouros">
+
         <FlyoutItem.Icon>
-            <FontImageSource FontFamily="MaterialIcons" Glyph="&#xe7f1;" />
+
+            <FontImageSource
+                FontFamily="MaterialIcons"
+                Glyph="&#xe7f1;" />
+
         </FlyoutItem.Icon>
-        <ShellContent ContentTemplate="{DataTemplate views:LogradouroListPage}" Route="logradouros" />
+
+        <ShellContent
+            ContentTemplate="{DataTemplate views:LogradouroListPage}"
+            Route="logradouros" />
+
     </FlyoutItem>
 
+
     <FlyoutItem Title="Configurações">
+
         <FlyoutItem.Icon>
-            <FontImageSource FontFamily="MaterialIcons" Glyph="&#xe8b8;" />
+
+            <FontImageSource
+                FontFamily="MaterialIcons"
+                Glyph="&#xe8b8;" />
+
         </FlyoutItem.Icon>
-        <ShellContent ContentTemplate="{DataTemplate views:ConfigPage}" Route="configuracoes" />
+
+        <ShellContent
+            ContentTemplate="{DataTemplate views:ConfigPage}"
+            Route="configuracoes" />
+
     </FlyoutItem>
 
 </Shell>
