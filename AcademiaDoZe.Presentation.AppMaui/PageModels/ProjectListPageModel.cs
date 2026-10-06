@@ -29,7 +29,9 @@ namespace AcademiaDoZe.Presentation.AppMaui.PageModels
 
         [RelayCommand]
         Task? NavigateToProject(Project project)
-            => project is null ? Task.CompletedTask : Shell.Current.GoToAsync($"project?id={project.ID}");
+            => project is null
+                ? Task.CompletedTask
+                : Shell.Current.GoToAsync($"project?id={project.ID}");
 
         [RelayCommand]
         async Task AddProject()

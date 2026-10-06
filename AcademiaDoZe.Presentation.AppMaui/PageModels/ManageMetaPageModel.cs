@@ -1,4 +1,3 @@
-
 using AcademiaDoZe.Presentation.AppMaui.Data;
 using AcademiaDoZe.Presentation.AppMaui.Models;
 using AcademiaDoZe.Presentation.AppMaui.Services;
@@ -113,7 +112,7 @@ namespace AcademiaDoZe.Presentation.AppMaui.PageModels
             await _tagRepository.SaveItemAsync(tag);
 
             await Toast.Make("Tag added").Show();
-            SemanticScreenReader.Announce("Tags added");
+            SemanticScreenReader.Announce("Tag added");
         }
 
         [RelayCommand]

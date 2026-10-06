@@ -13,6 +13,9 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 
+		<!-- Permite código unsafe para compatibilidade com WinRT/AOT -->
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
 		<ApplicationTitle>Academia do Zé</ApplicationTitle>
 		<ApplicationId>com.companyname.academiadoze.presentation.appmaui</ApplicationId>
 
@@ -26,6 +29,11 @@
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
 		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
+	</PropertyGroup>
+
+	<!-- Ignora o aviso MVVMTK0045 somente no Windows -->
+	<PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-windows10.0.19041.0'">
+		<NoWarn>$(NoWarn);MVVMTK0045</NoWarn>
 	</PropertyGroup>
 
 	<ItemGroup>

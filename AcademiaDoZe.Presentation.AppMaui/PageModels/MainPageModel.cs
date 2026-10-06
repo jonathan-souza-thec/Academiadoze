@@ -1,4 +1,3 @@
-
 using AcademiaDoZe.Presentation.AppMaui.Models;
 using CommunityToolkit.Maui.Alerts;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -29,10 +28,10 @@ namespace AcademiaDoZe.Presentation.AppMaui.PageModels
         private List<Project> _projects = [];
 
         [ObservableProperty]
-        bool _isBusy;
+        private bool _isBusy;
 
         [ObservableProperty]
-        bool _isRefreshing;
+        private bool _isRefreshing;
 
         [ObservableProperty]
         private string _today = DateTime.Now.ToString("dddd, MMM d");
@@ -149,7 +148,6 @@ namespace AcademiaDoZe.Presentation.AppMaui.PageModels
 
                 await Refresh();
             }
-            // This means we are being navigated to
             else if (!_isNavigatedTo)
             {
                 await Refresh();
