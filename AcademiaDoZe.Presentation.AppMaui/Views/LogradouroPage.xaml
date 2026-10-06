@@ -4,61 +4,140 @@
              x:Class="AcademiaDoZe.Presentation.AppMaui.Views.LogradouroPage"
              xmlns:vm="clr-namespace:AcademiaDoZe.Presentation.AppMaui.ViewModels"
              x:DataType="vm:LogradouroViewModel"
+             BackgroundColor="{AppThemeBinding Light=#F5F5F5, Dark=#121212}"
              Title="{Binding Title}">
 
-    <ScrollView>
-        <StackLayout Spacing="20">
+    <Grid>
+        <ScrollView>
+            <VerticalStackLayout Spacing="0" Padding="0,0,0,32">
 
-            <Border Style="{StaticResource CardBorder}" Margin="15,10">
-                <StackLayout Spacing="5">
-                    <Label Text="CEP"/>
-                    <Grid ColumnDefinitions="*,Auto">
-                        <Entry Grid.Column="0" Text="{Binding Logradouro.Cep}" Placeholder="00000-000" Keyboard="Numeric" Margin="0,0,10,0"/>
-                        <Button Grid.Column="1" Text="Buscar CEP" Command="{Binding SearchByCepCommand}" Style="{StaticResource ButtonPrimary}" HeightRequest="40" Padding="15,0"/>
-                    </Grid>
-                </StackLayout>
-            </Border>
+                <!-- ── Card CEP ── -->
+                <Border Style="{StaticResource CardElevated}" Margin="16,16,16,8">
+                    <VerticalStackLayout Spacing="10">
 
-            <Border Style="{StaticResource CardBorder}" Margin="15,10">
-                <StackLayout Spacing="15">
-                    <Label Text="{Binding Logradouro.Id, StringFormat='Logradouro ID: {0}'}" Style="{StaticResource SubHeadline}"/>
+                        <Grid ColumnDefinitions="Auto,8,*">
+                            <Border BackgroundColor="{AppThemeBinding Light=#FFF0E8, Dark=#3A2010}"
+                                    StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 10"
+                                    WidthRequest="36" HeightRequest="36"
+                                    Padding="0">
+                                <Label Text="&#xe55f;"
+                                       FontFamily="MaterialIcons"
+                                       FontSize="20"
+                                       TextColor="{AppThemeBinding Light=#E8500A, Dark=#FF7B3A}"
+                                       HorizontalOptions="Center"
+                                       VerticalOptions="Center"/>
+                            </Border>
+                            <Label Grid.Column="2"
+                                   Text="CEP"
+                                   Style="{StaticResource SubHeadline}"
+                                   VerticalOptions="Center"/>
+                        </Grid>
 
-                    <StackLayout Spacing="5">
-                        <Label Text="Nome/Rua"/>
-                        <Entry Text="{Binding Logradouro.Nome}" Placeholder="Digite o nome da rua..."/>
-                    </StackLayout>
+                        <BoxView Style="{StaticResource Separator}"/>
 
-                    <StackLayout Spacing="5">
-                        <Label Text="Bairro"/>
-                        <Entry Text="{Binding Logradouro.Bairro}" Placeholder="Digite o bairro..."/>
-                    </StackLayout>
+                        <Label Text="CÓDIGO POSTAL" Style="{StaticResource LabelFieldTitle}"/>
+                        <Grid ColumnDefinitions="*,12,Auto">
+                            <Entry Grid.Column="0"
+                                   Text="{Binding Logradouro.Cep}"
+                                   Placeholder="00000-000"
+                                   Keyboard="Numeric"/>
+                            <Button Grid.Column="2"
+                                    Text="Buscar"
+                                    Command="{Binding SearchByCepCommand}"
+                                    Style="{StaticResource ButtonPrimary}"
+                                    HeightRequest="44"
+                                    Padding="16,0"/>
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
 
-                    <StackLayout Spacing="5">
-                        <Label Text="Cidade"/>
-                        <Entry Text="{Binding Logradouro.Cidade}" Placeholder="Digite a cidade..."/>
-                    </StackLayout>
+                <!-- ── Card dados ── -->
+                <Border Style="{StaticResource CardElevated}" Margin="16,8">
+                    <VerticalStackLayout Spacing="14">
 
-                    <StackLayout Spacing="5">
-                        <Label Text="Estado"/>
-                        <Entry Text="{Binding Logradouro.Estado}" Placeholder="Digite o estado..."/>
-                    </StackLayout>
+                        <Grid ColumnDefinitions="Auto,8,*">
+                            <Border BackgroundColor="{AppThemeBinding Light=#FFF0E8, Dark=#3A2010}"
+                                    StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 10"
+                                    WidthRequest="36" HeightRequest="36"
+                                    Padding="0">
+                                <Label Text="&#xe88a;"
+                                       FontFamily="MaterialIcons"
+                                       FontSize="20"
+                                       TextColor="{AppThemeBinding Light=#E8500A, Dark=#FF7B3A}"
+                                       HorizontalOptions="Center"
+                                       VerticalOptions="Center"/>
+                            </Border>
+                            <Label Grid.Column="2"
+                                   Text="{Binding Logradouro.Id, StringFormat='Logradouro #{0}'}"
+                                   Style="{StaticResource SubHeadline}"
+                                   VerticalOptions="Center"/>
+                        </Grid>
 
-                    <StackLayout Spacing="5">
-                        <Label Text="País"/>
-                        <Entry Text="{Binding Logradouro.Pais}" Placeholder="Digite o país..."/>
-                    </StackLayout>
+                        <BoxView Style="{StaticResource Separator}"/>
 
-                </StackLayout>
-            </Border>
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="NOME / RUA" Style="{StaticResource LabelFieldTitle}"/>
+                            <Entry Text="{Binding Logradouro.Nome}" Placeholder="Nome da rua..."/>
+                        </VerticalStackLayout>
 
-            <Grid ColumnDefinitions="*,*" ColumnSpacing="10" Margin="15,10">
-                <Button Grid.Column="0" Text="Cancelar" Command="{Binding CancelCommand}" Style="{StaticResource ButtonSecondary}" HeightRequest="50"/>
-                <Button Grid.Column="1" Text="Salvar" Command="{Binding SaveLogradouroCommand}" Style="{StaticResource ButtonPrimary}" HeightRequest="50"/>
-            </Grid>
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="BAIRRO" Style="{StaticResource LabelFieldTitle}"/>
+                            <Entry Text="{Binding Logradouro.Bairro}" Placeholder="Bairro..."/>
+                        </VerticalStackLayout>
 
-            <ActivityIndicator IsVisible="{Binding IsBusy}" IsRunning="{Binding IsBusy}" VerticalOptions="Center" HorizontalOptions="Center"/>
+                        <Grid ColumnDefinitions="*,12,*">
+                            <VerticalStackLayout Grid.Column="0" Spacing="4">
+                                <Label Text="CIDADE" Style="{StaticResource LabelFieldTitle}"/>
+                                <Entry Text="{Binding Logradouro.Cidade}" Placeholder="Cidade..."/>
+                            </VerticalStackLayout>
+                            <VerticalStackLayout Grid.Column="2" Spacing="4">
+                                <Label Text="ESTADO" Style="{StaticResource LabelFieldTitle}"/>
+                                <Entry Text="{Binding Logradouro.Estado}"
+                                       Placeholder="UF"
+                                       MaxLength="2"/>
+                            </VerticalStackLayout>
+                        </Grid>
 
-        </StackLayout>
-    </ScrollView>
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="PAÍS" Style="{StaticResource LabelFieldTitle}"/>
+                            <Entry Text="{Binding Logradouro.Pais}" Placeholder="País..."/>
+                        </VerticalStackLayout>
+
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- ── Botões ── -->
+                <Grid ColumnDefinitions="*,12,*"
+                      Margin="16,8">
+                    <Button Grid.Column="0"
+                            Text="Cancelar"
+                            Command="{Binding CancelCommand}"
+                            Style="{StaticResource ButtonSecondary}"
+                            HeightRequest="48"/>
+                    <Button Grid.Column="2"
+                            Text="Salvar"
+                            Command="{Binding SaveLogradouroCommand}"
+                            Style="{StaticResource ButtonPrimary}"
+                            HeightRequest="48"/>
+                </Grid>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Loading -->
+        <Border BackgroundColor="{AppThemeBinding Light=#80FFFFFF, Dark=#80000000}"
+                StrokeThickness="0"
+                IsVisible="{Binding IsBusy}">
+            <ActivityIndicator
+                IsVisible="{Binding IsBusy}"
+                IsRunning="{Binding IsBusy}"
+                Color="{AppThemeBinding Light=#E8500A, Dark=#FF7B3A}"
+                VerticalOptions="Center"
+                HorizontalOptions="Center"/>
+        </Border>
+
+    </Grid>
 
 </ContentPage>

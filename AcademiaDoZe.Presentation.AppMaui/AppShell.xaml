@@ -1,60 +1,78 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-
 <Shell
     x:Class="AcademiaDoZe.Presentation.AppMaui.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:views="clr-namespace:AcademiaDoZe.Presentation.AppMaui.Views"
-    Title="Academia do Zé">
+    Title="Academia do Zé"
+    FlyoutBackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#1E1E1E}"
+    Shell.NavBarHasShadow="True">
+
+    <!-- Cabeçalho do Flyout -->
+    <Shell.FlyoutHeader>
+        <Grid HeightRequest="180"
+              BackgroundColor="{AppThemeBinding Light=#E8500A, Dark=#2A1A10}"
+              Padding="20">
+            <VerticalStackLayout VerticalOptions="End" Spacing="4">
+                <Border BackgroundColor="White"
+                        StrokeThickness="0"
+                        StrokeShape="RoundRectangle 12"
+                        WidthRequest="64" HeightRequest="64"
+                        HorizontalOptions="Start">
+                    <Image Source="academiadoze.png"
+                           WidthRequest="52" HeightRequest="52"
+                           Aspect="AspectFit"/>
+                </Border>
+                <Label Text="Academia do Zé"
+                       TextColor="White"
+                       FontSize="18"
+                       FontAttributes="Bold"
+                       Margin="0,8,0,0"/>
+                <Label Text="Sistema de Gerenciamento"
+                       TextColor="#FFD0B8"
+                       FontSize="13"/>
+            </VerticalStackLayout>
+        </Grid>
+    </Shell.FlyoutHeader>
 
     <FlyoutItem Title="Dashboard">
-
         <FlyoutItem.Icon>
-
+            <!-- Cor explícita em AppThemeBinding resolve o sumiço no tema claro/escuro -->
             <FontImageSource
                 FontFamily="MaterialIcons"
-                Glyph="&#xe871;" />
-
+                Glyph="&#xe871;"
+                Color="{AppThemeBinding Light=#E8500A, Dark=#FF7B3A}"
+                Size="24"/>
         </FlyoutItem.Icon>
-
         <ShellContent
             ContentTemplate="{DataTemplate views:DashboardListPage}"
-            Route="dashboard" />
-
+            Route="dashboard"/>
     </FlyoutItem>
-
 
     <FlyoutItem Title="Logradouros">
-
         <FlyoutItem.Icon>
-
             <FontImageSource
                 FontFamily="MaterialIcons"
-                Glyph="&#xe7f1;" />
-
+                Glyph="&#xe7f1;"
+                Color="{AppThemeBinding Light=#E8500A, Dark=#FF7B3A}"
+                Size="24"/>
         </FlyoutItem.Icon>
-
         <ShellContent
             ContentTemplate="{DataTemplate views:LogradouroListPage}"
-            Route="logradouros" />
-
+            Route="logradouros"/>
     </FlyoutItem>
 
-
     <FlyoutItem Title="Configurações">
-
         <FlyoutItem.Icon>
-
             <FontImageSource
                 FontFamily="MaterialIcons"
-                Glyph="&#xe8b8;" />
-
+                Glyph="&#xe8b8;"
+                Color="{AppThemeBinding Light=#E8500A, Dark=#FF7B3A}"
+                Size="24"/>
         </FlyoutItem.Icon>
-
         <ShellContent
             ContentTemplate="{DataTemplate views:ConfigPage}"
-            Route="configuracoes" />
-
+            Route="configuracoes"/>
     </FlyoutItem>
 
 </Shell>
