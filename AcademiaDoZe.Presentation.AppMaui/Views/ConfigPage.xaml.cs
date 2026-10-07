@@ -2,32 +2,40 @@
 
 using AcademiaDoZe.Application.Enums;
 using AcademiaDoZe.Presentation.AppMaui.Message;
+using CommunityToolkit.Maui.Extensions;
+using CommunityToolkit.Maui.Views;
 using CommunityToolkit.Mvvm.Messaging;
 
 namespace AcademiaDoZe.Presentation.AppMaui.Views;
 
 public partial class ConfigPage : ContentPage
 {
-    // Servidor padrão para MySQL no Android Emulator.
-    // 10.0.2.2 aponta para o computador Windows.
+    // ============================================================
+    // CONFIGURAÇÕES PADRÃO DO MYSQL
+    // ============================================================
+
     private const string ServidorPadraoMySql = "10.0.2.2";
 
-    // Banco padrão
     private const string BancoPadraoMySql = "db_academia_do_ze";
 
-    // Usuário padrão
     private const string UsuarioPadraoMySql = "root";
 
-    // Senha padrão
     private const string SenhaPadraoMySql = "abcBolinhas12345";
+
+
+    // ============================================================
+    // CONSTRUTOR
+    // ============================================================
 
     public ConfigPage()
     {
         InitializeComponent();
 
         CarregarTema();
+
         CarregarBanco();
     }
+
 
     // ============================================================
     // TEMA
@@ -42,33 +50,64 @@ public partial class ConfigPage : ContentPage
         TemaPicker.SelectedItem = temaAtual;
     }
 
+
     private async void OnSalvarTemaClicked(
         object sender,
         EventArgs e)
     {
         if (TemaPicker.SelectedItem is not string tema)
         {
-            await DisplayAlertAsync(
+            await MostrarAlertaAsync(
                 "Atenção",
-                "Selecione um tema.",
-                "OK");
+                "Selecione um tema.");
 
             return;
         }
 
+
+        // Salva a preferência
         Preferences.Set(
             "Tema",
             tema);
 
-        // A classe da mensagem exige um string.
+
+        // Aplica o tema imediatamente
+        Microsoft.Maui.Controls.Application.Current!.UserAppTheme =
+            tema switch
+            {
+                "light" => AppTheme.Light,
+
+                "dark" => AppTheme.Dark,
+
+                _ => AppTheme.Unspecified
+            };
+
+
+        // Envia mensagem para a aplicação
         WeakReferenceMessenger.Default.Send(
             new TemaPreferencesUpdatedMessage(tema));
 
-        await DisplayAlertAsync(
+
+        await MostrarAlertaAsync(
             "Sucesso",
-            "Tema salvo com sucesso!",
-            "OK");
+            "Tema salvo com sucesso!");
     }
+
+
+    // ============================================================
+    // POPUP PERSONALIZADO
+    // ============================================================
+
+    private async Task MostrarAlertaAsync(
+        string titulo,
+        string mensagem)
+    {
+        await this.ShowPopupAsync(
+            new AppAlertPopup(
+                titulo,
+                mensagem));
+    }
+
 
     // ============================================================
     // BANCO DE DADOS
@@ -78,20 +117,26 @@ public partial class ConfigPage : ContentPage
     {
         DatabaseTypePicker.Items.Clear();
 
+
         foreach (var tipo in Enum.GetValues<AppDatabaseType>())
         {
             DatabaseTypePicker.Items.Add(
                 tipo.ToString());
         }
 
+
         var bancoAtual = Preferences.Get(
             "DatabaseType",
             AppDatabaseType.MySql.ToString());
 
-        DatabaseTypePicker.SelectedItem = bancoAtual;
+
+        DatabaseTypePicker.SelectedItem =
+            bancoAtual;
+
 
         AtualizarInterfacePorTipoBanco();
     }
+
 
     private void OnDatabaseTypeChanged(
         object sender,
@@ -100,12 +145,14 @@ public partial class ConfigPage : ContentPage
         AtualizarInterfacePorTipoBanco();
     }
 
+
     private void AtualizarInterfacePorTipoBanco()
     {
         if (DatabaseTypePicker.SelectedItem is not string tipo)
         {
             return;
         }
+
 
         // ========================================================
         // SQLITE
@@ -114,33 +161,44 @@ public partial class ConfigPage : ContentPage
         if (tipo == AppDatabaseType.Sqlite.ToString())
         {
             SqliteInfoCard.IsVisible = true;
+
             SqliteContainer.IsVisible = true;
 
             ServidorBancoGrid.IsVisible = false;
+
             CredenciaisGrid.IsVisible = false;
 
             ComplementoLabel.IsVisible = false;
+
             ComplementoEntry.IsVisible = false;
 
-            SqliteCaminhoEntry.Text = Preferences.Get(
-                "Sqlite_Caminho",
-                "db_academia_do_ze.db");
+
+            SqliteCaminhoEntry.Text =
+                Preferences.Get(
+                    "Sqlite_Caminho",
+                    "db_academia_do_ze.db");
+
 
             return;
         }
+
 
         // ========================================================
         // SQL SERVER / MYSQL
         // ========================================================
 
         SqliteInfoCard.IsVisible = false;
+
         SqliteContainer.IsVisible = false;
 
         ServidorBancoGrid.IsVisible = true;
+
         CredenciaisGrid.IsVisible = true;
 
         ComplementoLabel.IsVisible = true;
+
         ComplementoEntry.IsVisible = true;
+
 
         // ========================================================
         // SQL SERVER
@@ -163,28 +221,40 @@ public partial class ConfigPage : ContentPage
             ComplementoLabel.Text =
                 "Complemento";
 
-            ServidorEntry.Text = Preferences.Get(
-                "SqlServer_Servidor",
-                "localhost");
 
-            BancoEntry.Text = Preferences.Get(
-                "SqlServer_Banco",
-                "db_academia_do_ze");
+            ServidorEntry.Text =
+                Preferences.Get(
+                    "SqlServer_Servidor",
+                    "localhost");
 
-            UsuarioEntry.Text = Preferences.Get(
-                "SqlServer_Usuario",
-                "sa");
 
-            SenhaEntry.Text = Preferences.Get(
-                "SqlServer_Senha",
-                "");
+            BancoEntry.Text =
+                Preferences.Get(
+                    "SqlServer_Banco",
+                    "db_academia_do_ze");
 
-            ComplementoEntry.Text = Preferences.Get(
-                "SqlServer_Complemento",
-                "TrustServerCertificate=True;");
+
+            UsuarioEntry.Text =
+                Preferences.Get(
+                    "SqlServer_Usuario",
+                    "sa");
+
+
+            SenhaEntry.Text =
+                Preferences.Get(
+                    "SqlServer_Senha",
+                    "");
+
+
+            ComplementoEntry.Text =
+                Preferences.Get(
+                    "SqlServer_Complemento",
+                    "TrustServerCertificate=True;");
+
 
             return;
         }
+
 
         // ========================================================
         // MYSQL
@@ -207,29 +277,41 @@ public partial class ConfigPage : ContentPage
             ComplementoLabel.Text =
                 "Complemento";
 
-            ServidorEntry.Text = Preferences.Get(
-                "MySql_Servidor",
-                ServidorPadraoMySql);
 
-            BancoEntry.Text = Preferences.Get(
-                "MySql_Banco",
-                BancoPadraoMySql);
+            ServidorEntry.Text =
+                Preferences.Get(
+                    "MySql_Servidor",
+                    ServidorPadraoMySql);
 
-            UsuarioEntry.Text = Preferences.Get(
-                "MySql_Usuario",
-                UsuarioPadraoMySql);
 
-            SenhaEntry.Text = Preferences.Get(
-                "MySql_Senha",
-                SenhaPadraoMySql);
+            BancoEntry.Text =
+                Preferences.Get(
+                    "MySql_Banco",
+                    BancoPadraoMySql);
 
-            ComplementoEntry.Text = Preferences.Get(
-                "MySql_Complemento",
-                "Port=3306;Connection Timeout=5;Default Command Timeout=30;");
+
+            UsuarioEntry.Text =
+                Preferences.Get(
+                    "MySql_Usuario",
+                    UsuarioPadraoMySql);
+
+
+            SenhaEntry.Text =
+                Preferences.Get(
+                    "MySql_Senha",
+                    SenhaPadraoMySql);
+
+
+            ComplementoEntry.Text =
+                Preferences.Get(
+                    "MySql_Complemento",
+                    "Port=3306;Connection Timeout=5;Default Command Timeout=30;");
+
 
             return;
         }
     }
+
 
     // ============================================================
     // SALVAR BANCO
@@ -241,13 +323,13 @@ public partial class ConfigPage : ContentPage
     {
         if (DatabaseTypePicker.SelectedItem is not string tipo)
         {
-            await DisplayAlertAsync(
+            await MostrarAlertaAsync(
                 "Atenção",
-                "Selecione o tipo de banco de dados.",
-                "OK");
+                "Selecione o tipo de banco de dados.");
 
             return;
         }
+
 
         // ========================================================
         // SQLITE
@@ -258,15 +340,16 @@ public partial class ConfigPage : ContentPage
             var caminho =
                 SqliteCaminhoEntry.Text?.Trim();
 
+
             if (string.IsNullOrWhiteSpace(caminho))
             {
-                await DisplayAlertAsync(
+                await MostrarAlertaAsync(
                     "Atenção",
-                    "Informe o caminho do banco SQLite.",
-                    "OK");
+                    "Informe o caminho do banco SQLite.");
 
                 return;
             }
+
 
             Preferences.Set(
                 "DatabaseType",
@@ -276,20 +359,22 @@ public partial class ConfigPage : ContentPage
                 "Sqlite_Caminho",
                 caminho);
 
-            // A mensagem exige um string.
+
             WeakReferenceMessenger.Default.Send(
                 new BancoPreferencesUpdatedMessage(tipo));
 
-            await DisplayAlertAsync(
+
+            await MostrarAlertaAsync(
                 "Sucesso",
-                "Configuração do SQLite salva com sucesso!",
-                "OK");
+                "Configuração do SQLite salva com sucesso!");
+
 
             await Shell.Current.GoToAsync(
                 "//dashboard");
 
             return;
         }
+
 
         // ========================================================
         // MYSQL / SQL SERVER
@@ -310,39 +395,41 @@ public partial class ConfigPage : ContentPage
         var complemento =
             ComplementoEntry.Text?.Trim() ?? "";
 
+
         if (string.IsNullOrWhiteSpace(servidor))
         {
-            await DisplayAlertAsync(
+            await MostrarAlertaAsync(
                 "Atenção",
-                "Informe o servidor.",
-                "OK");
+                "Informe o servidor.");
 
             return;
         }
+
 
         if (string.IsNullOrWhiteSpace(banco))
         {
-            await DisplayAlertAsync(
+            await MostrarAlertaAsync(
                 "Atenção",
-                "Informe o banco de dados.",
-                "OK");
+                "Informe o banco de dados.");
 
             return;
         }
+
 
         if (string.IsNullOrWhiteSpace(usuario))
         {
-            await DisplayAlertAsync(
+            await MostrarAlertaAsync(
                 "Atenção",
-                "Informe o usuário.",
-                "OK");
+                "Informe o usuário.");
 
             return;
         }
+
 
         Preferences.Set(
             "DatabaseType",
             tipo);
+
 
         // ========================================================
         // MYSQL
@@ -370,6 +457,7 @@ public partial class ConfigPage : ContentPage
                 "MySql_Complemento",
                 complemento);
         }
+
 
         // ========================================================
         // SQL SERVER
@@ -398,18 +486,20 @@ public partial class ConfigPage : ContentPage
                 complemento);
         }
 
-        // A mensagem exige um string.
+
         WeakReferenceMessenger.Default.Send(
             new BancoPreferencesUpdatedMessage(tipo));
 
-        await DisplayAlertAsync(
+
+        await MostrarAlertaAsync(
             "Sucesso",
-            "Configuração do banco salva com sucesso!",
-            "OK");
+            "Configuração do banco salva com sucesso!");
+
 
         await Shell.Current.GoToAsync(
             "//dashboard");
     }
+
 
     // ============================================================
     // CANCELAR
@@ -422,6 +512,7 @@ public partial class ConfigPage : ContentPage
         await Shell.Current.GoToAsync(
             "//dashboard");
     }
+
 
     // ============================================================
     // CICLO DE VIDA

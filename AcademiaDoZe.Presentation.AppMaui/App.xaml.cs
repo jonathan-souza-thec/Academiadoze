@@ -5,19 +5,26 @@ using CommunityToolkit.Mvvm.Messaging;
 
 namespace AcademiaDoZe.Presentation.AppMaui;
 
-// Application conflita com o nome da nossa camada de aplicação.
-// Usamos o namespace completo para apontar para a classe Application do MAUI.
+// Application conflita com o nome da nossa camada Application.
+// Por isso utilizamos o namespace completo do MAUI.
 public partial class App : Microsoft.Maui.Controls.Application
 {
     public App()
     {
         InitializeComponent();
 
-        // Aplicar o tema salvo nas preferências
+
+        // ========================================================
+        // APLICA O TEMA SALVO
+        // ========================================================
+
         AplicarTema();
 
-        // Sempre que o usuário alterar o tema,
-        // a mensagem é enviada e o tema é reaplicado.
+
+        // ========================================================
+        // ESCUTA ALTERAÇÕES DO TEMA
+        // ========================================================
+
         WeakReferenceMessenger.Default.Register<TemaPreferencesUpdatedMessage>(
             this,
             (r, m) =>
@@ -26,18 +33,39 @@ public partial class App : Microsoft.Maui.Controls.Application
             });
     }
 
-    protected override Window CreateWindow(IActivationState? activationState)
+
+    // ============================================================
+    // CRIA A JANELA PRINCIPAL
+    // ============================================================
+
+    protected override Window CreateWindow(
+        IActivationState? activationState)
     {
-        return new Window(new AppShell());
+        return new Window(
+            new AppShell());
     }
+
+
+    // ============================================================
+    // APLICA O TEMA
+    // ============================================================
 
     private void AplicarTema()
     {
-        UserAppTheme = Preferences.Get("Tema", "system") switch
-        {
-            "light" => AppTheme.Light,
-            "dark" => AppTheme.Dark,
-            _ => AppTheme.Unspecified,
-        };
+        var tema =
+            Preferences.Get(
+                "Tema",
+                "system");
+
+
+        UserAppTheme =
+            tema switch
+            {
+                "light" => AppTheme.Light,
+
+                "dark" => AppTheme.Dark,
+
+                _ => AppTheme.Unspecified
+            };
     }
 }

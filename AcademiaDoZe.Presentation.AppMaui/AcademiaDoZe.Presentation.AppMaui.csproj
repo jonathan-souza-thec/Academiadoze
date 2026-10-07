@@ -51,9 +51,16 @@
 		<MauiFont Include="Resources\Fonts\*" />
 
 		<!-- Arquivos -->
-		<MauiAsset Include="Resources\Raw\**"
-				   LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
+		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
 
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Compile Remove="Views\AppAlertPopup.xaml.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <MauiXaml Remove="Views\AppAlertPopup.xaml" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -100,6 +107,12 @@
 			<Generator>MSBuild:Compile</Generator>
 		</MauiXaml>
 
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Update="Views\AppAlertPopup.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </None>
 	</ItemGroup>
 
 </Project>
