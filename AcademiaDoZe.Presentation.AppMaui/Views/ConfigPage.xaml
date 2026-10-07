@@ -4,35 +4,40 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Class="AcademiaDoZe.Presentation.AppMaui.Views.ConfigPage"
+    BackgroundColor="{AppThemeBinding Light=#F5F5F5, Dark=#121212}"
     Title="Configurações">
 
     <ScrollView>
 
-        <VerticalStackLayout Spacing="20">
+        <VerticalStackLayout Spacing="4" Padding="0,8,0,24">
 
             <!-- ================================================= -->
-            <!-- TEMA                                             -->
+            <!-- TEMA                                              -->
             <!-- ================================================= -->
 
             <Border
-                Margin="15,10"
-                Padding="15"
-                StrokeShape="RoundRectangle 10">
+                Style="{StaticResource CardElevated}"
+                Margin="16,8">
 
-                <VerticalStackLayout Spacing="15">
+                <VerticalStackLayout Spacing="14">
 
                     <Label
                         Text="Tema"
-                        FontSize="22"
-                        FontAttributes="Bold" />
+                        FontSize="20"
+                        FontAttributes="Bold"
+                        TextColor="{AppThemeBinding Light=#1A1A1A, Dark=#F0F0F0}" />
 
-                    <VerticalStackLayout Spacing="5">
+                    <BoxView Style="{StaticResource Separator}" />
+
+                    <VerticalStackLayout Spacing="4">
 
                         <Label
-                            Text="Tema" />
+                            Text="TEMA DO APLICATIVO"
+                            Style="{StaticResource LabelFieldTitle}" />
 
                         <Picker
-                            x:Name="TemaPicker">
+                            x:Name="TemaPicker"
+                            TextColor="{AppThemeBinding Light=#1A1A1A, Dark=#F0F0F0}">
 
                             <Picker.ItemsSource>
 
@@ -52,19 +57,20 @@
 
                     <Grid
                         ColumnDefinitions="*,*"
-                        ColumnSpacing="10">
+                        ColumnSpacing="12">
 
                         <Button
                             Grid.Column="0"
                             Text="Cancelar"
-                            Clicked="OnCancelarClicked"
-                            HeightRequest="45">
+                            Style="{StaticResource ButtonSecondary}"
+                            Clicked="OnCancelarClicked">
 
                             <Button.ImageSource>
 
                                 <FontImageSource
                                     FontFamily="MaterialIcons"
-                                    Glyph="&#xe5c9;" />
+                                    Glyph="&#xe5c9;"
+                                    Color="{AppThemeBinding Light=#E8500A, Dark=#FF7B3A}" />
 
                             </Button.ImageSource>
 
@@ -73,14 +79,15 @@
                         <Button
                             Grid.Column="1"
                             Text="Salvar Tema"
-                            Clicked="OnSalvarTemaClicked"
-                            HeightRequest="45">
+                            Style="{StaticResource ButtonPrimary}"
+                            Clicked="OnSalvarTemaClicked">
 
                             <Button.ImageSource>
 
                                 <FontImageSource
                                     FontFamily="MaterialIcons"
-                                    Glyph="&#xe161;" />
+                                    Glyph="&#xe161;"
+                                    Color="{AppThemeBinding Light=#FFFFFF, Dark=#1A1A1A}" />
 
                             </Button.ImageSource>
 
@@ -98,27 +105,31 @@
             <!-- ================================================= -->
 
             <Border
-                Margin="15,10"
-                Padding="15"
-                StrokeShape="RoundRectangle 10">
+                Style="{StaticResource CardElevated}"
+                Margin="16,8">
 
-                <VerticalStackLayout Spacing="15">
+                <VerticalStackLayout Spacing="14">
 
                     <Label
                         Text="Credenciais do Banco"
-                        FontSize="22"
-                        FontAttributes="Bold" />
+                        FontSize="20"
+                        FontAttributes="Bold"
+                        TextColor="{AppThemeBinding Light=#1A1A1A, Dark=#F0F0F0}" />
+
+                    <BoxView Style="{StaticResource Separator}" />
 
 
                     <!-- TIPO DO BANCO -->
 
-                    <VerticalStackLayout Spacing="5">
+                    <VerticalStackLayout Spacing="4">
 
                         <Label
-                            Text="Tipo de Gerenciador" />
+                            Text="TIPO DE GERENCIADOR"
+                            Style="{StaticResource LabelFieldTitle}" />
 
                         <Picker
                             x:Name="DatabaseTypePicker"
+                            TextColor="{AppThemeBinding Light=#1A1A1A, Dark=#F0F0F0}"
                             SelectedIndexChanged="OnDatabaseTypeChanged" />
 
                     </VerticalStackLayout>
@@ -130,24 +141,26 @@
 
                     <Border
                         x:Name="SqliteInfoCard"
+                        Style="{StaticResource CardAccent}"
                         IsVisible="False"
-                        Padding="12"
-                        StrokeShape="RoundRectangle 8">
+                        Padding="12">
 
                         <Label
                             Text="O SQLite é um banco de dados local armazenado em arquivo. Não requer servidor de rede, usuário ou senha."
-                            FontSize="13" />
+                            FontSize="13"
+                            TextColor="{AppThemeBinding Light=#1A1A1A, Dark=#F0F0F0}" />
 
                     </Border>
 
 
                     <VerticalStackLayout
                         x:Name="SqliteContainer"
-                        Spacing="5"
+                        Spacing="4"
                         IsVisible="False">
 
                         <Label
-                            Text="Caminho / Arquivo do Banco (.db)" />
+                            Text="CAMINHO / ARQUIVO DO BANCO (.DB)"
+                            Style="{StaticResource LabelFieldTitle}" />
 
                         <Entry
                             x:Name="SqliteCaminhoEntry"
@@ -163,14 +176,15 @@
                     <Grid
                         x:Name="ServidorBancoGrid"
                         ColumnDefinitions="*,*"
-                        ColumnSpacing="10">
+                        ColumnSpacing="12">
 
                         <VerticalStackLayout
                             Grid.Column="0"
-                            Spacing="5">
+                            Spacing="4">
 
                             <Label
-                                Text="Servidor" />
+                                Text="SERVIDOR"
+                                Style="{StaticResource LabelFieldTitle}" />
 
                             <Entry
                                 x:Name="ServidorEntry"
@@ -181,10 +195,11 @@
 
                         <VerticalStackLayout
                             Grid.Column="1"
-                            Spacing="5">
+                            Spacing="4">
 
                             <Label
-                                Text="Banco" />
+                                Text="BANCO"
+                                Style="{StaticResource LabelFieldTitle}" />
 
                             <Entry
                                 x:Name="BancoEntry"
@@ -202,14 +217,15 @@
                     <Grid
                         x:Name="CredenciaisGrid"
                         ColumnDefinitions="*,*"
-                        ColumnSpacing="10">
+                        ColumnSpacing="12">
 
                         <VerticalStackLayout
                             Grid.Column="0"
-                            Spacing="5">
+                            Spacing="4">
 
                             <Label
-                                Text="Usuário" />
+                                Text="USUÁRIO"
+                                Style="{StaticResource LabelFieldTitle}" />
 
                             <Entry
                                 x:Name="UsuarioEntry"
@@ -220,10 +236,11 @@
 
                         <VerticalStackLayout
                             Grid.Column="1"
-                            Spacing="5">
+                            Spacing="4">
 
                             <Label
-                                Text="Senha" />
+                                Text="SENHA"
+                                Style="{StaticResource LabelFieldTitle}" />
 
                             <Entry
                                 x:Name="SenhaEntry"
@@ -239,11 +256,12 @@
                     <!-- COMPLEMENTO                                       -->
                     <!-- ================================================= -->
 
-                    <VerticalStackLayout Spacing="5">
+                    <VerticalStackLayout Spacing="4">
 
                         <Label
                             x:Name="ComplementoLabel"
-                            Text="Complemento" />
+                            Text="Complemento"
+                            Style="{StaticResource LabelFieldTitle}" />
 
                         <Entry
                             x:Name="ComplementoEntry"
@@ -257,21 +275,22 @@
                     <!-- ================================================= -->
 
                     <Grid
-                        Margin="15,10"
+                        Margin="0,8,0,0"
                         ColumnDefinitions="*,*"
-                        ColumnSpacing="10">
+                        ColumnSpacing="12">
 
                         <Button
                             Grid.Column="0"
                             Text="Cancelar"
-                            Clicked="OnCancelarClicked"
-                            HeightRequest="45">
+                            Style="{StaticResource ButtonSecondary}"
+                            Clicked="OnCancelarClicked">
 
                             <Button.ImageSource>
 
                                 <FontImageSource
                                     FontFamily="MaterialIcons"
-                                    Glyph="&#xe5c9;" />
+                                    Glyph="&#xe5c9;"
+                                    Color="{AppThemeBinding Light=#E8500A, Dark=#FF7B3A}" />
 
                             </Button.ImageSource>
 
@@ -281,14 +300,15 @@
                         <Button
                             Grid.Column="1"
                             Text="Salvar BD"
-                            Clicked="OnSalvarBdClicked"
-                            HeightRequest="45">
+                            Style="{StaticResource ButtonPrimary}"
+                            Clicked="OnSalvarBdClicked">
 
                             <Button.ImageSource>
 
                                 <FontImageSource
                                     FontFamily="MaterialIcons"
-                                    Glyph="&#xe161;" />
+                                    Glyph="&#xe161;"
+                                    Color="{AppThemeBinding Light=#FFFFFF, Dark=#1A1A1A}" />
 
                             </Button.ImageSource>
 

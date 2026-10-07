@@ -143,4 +143,31 @@
         <Setter Property="HorizontalOptions" Value="Fill"/>
     </Style>
 
+    <!-- ══════════════════════════════════════════════ -->
+    <!-- Padrões globais de tema (telas sem cor própria) -->
+    <!-- ══════════════════════════════════════════════ -->
+
+    <!-- Fundo de todas as páginas -->
+    <Style TargetType="Page" ApplyToDerivedTypes="True">
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource LightBackground}, Dark={StaticResource DarkBackground}}"/>
+    </Style>
+
+    <!-- Cor padrão dos textos -->
+    <Style TargetType="Label">
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"/>
+    </Style>
+
+    <!-- Cor padrão dos seletores (Picker) -->
+    <Style TargetType="Picker">
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"/>
+        <Setter Property="TitleColor" Value="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
+    </Style>
+
+    <!-- Cartões (Border) sem estilo próprio -->
+    <Style TargetType="Border">
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource LightSecondaryBackground}, Dark={StaticResource DarkSecondaryBackground}}"/>
+        <Setter Property="Stroke" Value="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray900}}"/>
+        <Setter Property="StrokeThickness" Value="1"/>
+    </Style>
+
 </ResourceDictionary>
