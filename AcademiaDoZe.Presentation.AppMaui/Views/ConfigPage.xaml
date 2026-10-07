@@ -4,6 +4,7 @@
     x:Class="AcademiaDoZe.Presentation.AppMaui.Views.ConfigPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    BackgroundColor="{AppThemeBinding Light=#F5F5F5, Dark=#121212}"
     Title="Configurações">
 
     <ScrollView>
