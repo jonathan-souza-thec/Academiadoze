@@ -60,7 +60,14 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <MauiXaml Remove="Views\AlunoListPage.xaml" />
 	  <MauiXaml Remove="Views\AppAlertPopup.xaml" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Compile Include="Views\AlunoListPage.Xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </Compile>
 	</ItemGroup>
 
 	<ItemGroup>
@@ -90,6 +97,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
+
+		<MauiXaml Update="Views\AlunoPage.Xaml">
+		  <Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
 
 		<MauiXaml Update="Views\ColaboradorListPage.xaml">
 		  <Generator>MSBuild:Compile</Generator>

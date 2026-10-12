@@ -80,10 +80,27 @@
 
     <FlyoutItem Title="Colaboradores">
         <FlyoutItem.Icon>
-            <FontImageSource FontFamily="MaterialIcons" Glyph="&#xea67;" />
+            <FontImageSource
+                FontFamily="MaterialIcons"
+                Glyph="&#xea67;"
+                Color="{AppThemeBinding Light=#E8500A, Dark=#FF7B3A}"
+                Size="24"/>
         </FlyoutItem.Icon>
         <ShellContent ContentTemplate="{DataTemplate views:ColaboradorListPage}" Route="colaboradores" />
     </FlyoutItem>
 
+    <FlyoutItem Title="Alunos">
+        <FlyoutItem.Icon>
+            <FontImageSource
+                FontFamily="MaterialIcons"
+                Glyph="&#xe80c;"
+                Color="{AppThemeBinding Light=#E8500A, Dark=#FF7B3A}"
+                Size="24"/>
+        </FlyoutItem.Icon>
+        <ShellContent ContentTemplate="{DataTemplate views:AlunoListPage}" Route="alunos" />
+    </FlyoutItem>
+
 
 </Shell>
+    
+    

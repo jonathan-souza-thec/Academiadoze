@@ -422,13 +422,13 @@ Isso permite que o usuário veja todos os problemas de uma vez e corrija-os ante
                 errors.Add("• Telefone deve conter 11 dígitos numéricos com DDD.");
             }
         }
-        if (!string.IsNullOrWhiteSpace(colaborador.Email))
+        if (string.IsNullOrWhiteSpace(colaborador.Email))
         {
-            var emailLimpo = colaborador.Email.Trim();
-            if (!ValidarFormatoEmail(emailLimpo))
-            {
-                errors.Add("• Formato de e-mail inválido.");
-            }
+            errors.Add("• E-mail é obrigatório.");
+        }
+        else if (!ValidarFormatoEmail(colaborador.Email.Trim()))
+        {
+            errors.Add("• Formato de e-mail inválido.");
         }
         // Senha: obrigatória no cadastro; na edição só valida se foi preenchida
         if (!isEditMode)
