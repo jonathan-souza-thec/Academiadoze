@@ -1,5 +1,7 @@
 ﻿// Jonathan de Souza Pereira
 
+using AcademiaDoZe.Presentation.AppMaui.Views;
+
 namespace AcademiaDoZe.Presentation.AppMaui;
 
 public partial class AppShell : Shell
@@ -9,5 +11,10 @@ public partial class AppShell : Shell
         InitializeComponent();
 
         Routing.RegisterRoute("logradouro", typeof(Views.LogradouroPage));
+        Routing.RegisterRoute("colaborador", typeof(ColaboradorPage));
+
     }
+
+
+
 }

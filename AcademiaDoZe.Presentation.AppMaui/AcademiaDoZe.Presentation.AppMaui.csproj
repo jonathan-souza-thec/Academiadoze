@@ -91,6 +91,14 @@
 
 	<ItemGroup>
 
+		<MauiXaml Update="Views\ColaboradorListPage.xaml">
+		  <Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+
+		<MauiXaml Update="Views\ColaboradorPage.xaml">
+		  <Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+
 		<MauiXaml Update="Views\ConfigPage.xaml">
 			<Generator>MSBuild:Compile</Generator>
 		</MauiXaml>
