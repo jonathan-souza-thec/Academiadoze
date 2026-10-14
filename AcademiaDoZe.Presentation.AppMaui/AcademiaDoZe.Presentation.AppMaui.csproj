@@ -1,4 +1,5 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFrameworks>net10.0-android</TargetFrameworks>
@@ -13,9 +14,6 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 
-		<!-- Permite código unsafe para compatibilidade com WinRT/AOT -->
-		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-
 		<ApplicationTitle>Academia do Zé</ApplicationTitle>
 		<ApplicationId>com.companyname.academiadoze.presentation.appmaui</ApplicationId>
 
@@ -29,11 +27,6 @@
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
 		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
-	</PropertyGroup>
-
-	<!-- Ignora o aviso MVVMTK0045 somente no Windows -->
-	<PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-windows10.0.19041.0'">
-		<NoWarn>$(NoWarn);MVVMTK0045</NoWarn>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -53,21 +46,6 @@
 		<!-- Arquivos -->
 		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
 
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Compile Remove="Views\AppAlertPopup.xaml.cs" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <MauiXaml Remove="Views\AlunoListPage.xaml" />
-	  <MauiXaml Remove="Views\AppAlertPopup.xaml" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Compile Include="Views\AlunoListPage.Xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </Compile>
 	</ItemGroup>
 
 	<ItemGroup>
@@ -98,15 +76,7 @@
 
 	<ItemGroup>
 
-		<MauiXaml Update="Views\AlunoPage.Xaml">
-		  <Generator>MSBuild:Compile</Generator>
-		</MauiXaml>
-
 		<MauiXaml Update="Views\ColaboradorListPage.xaml">
-		  <Generator>MSBuild:Compile</Generator>
-		</MauiXaml>
-
-		<MauiXaml Update="Views\ColaboradorPage.xaml">
 		  <Generator>MSBuild:Compile</Generator>
 		</MauiXaml>
 
@@ -126,12 +96,11 @@
 			<Generator>MSBuild:Compile</Generator>
 		</MauiXaml>
 
-	</ItemGroup>
+		<!-- Página de listagem de alunos -->
+		<MauiXaml Update="Views\AlunoListPage.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
 
-	<ItemGroup>
-	  <None Update="Views\AppAlertPopup.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </None>
 	</ItemGroup>
 
 </Project>

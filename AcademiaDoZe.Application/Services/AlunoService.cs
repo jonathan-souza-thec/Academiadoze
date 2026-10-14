@@ -1,5 +1,4 @@
-﻿
-// jonathan de souza pereira 
+﻿// jonathan de souza pereira 
 using AcademiaDoZe.Application.DTOs;
 
 
@@ -7,6 +6,7 @@ using AcademiaDoZe.Application.DTOs;
 using AcademiaDoZe.Application.Interfaces;
 using AcademiaDoZe.Application.Mappings;
 using AcademiaDoZe.Application.Security;
+using AcademiaDoZe.Domain.Entities;
 using AcademiaDoZe.Domain.Repositories;
 using AcademiaDoZe.Domain.ValueObjects;
 
@@ -27,14 +27,14 @@ public class AlunoService : IAlunoService
     {
         var repo = _alunoRepositoryFactory();
         var aluno = await repo.ObterPorId(id, cancellationToken);
-        return aluno?.ToDto();
+        return aluno is null ? null : await ParaDtoAsync(aluno, cancellationToken);
     }
 
     public async Task<IEnumerable<AlunoDto>> ObterTodosAsync(CancellationToken cancellationToken = default)
     {
         var repo = _alunoRepositoryFactory();
         var alunos = await repo.ObterTodos(cancellationToken);
-        return alunos.Select(a => a.ToDto());
+        return await ParaDtosAsync(alunos, cancellationToken);
     }
 
     public async Task<AlunoDto> AdicionarAsync(AlunoDto alunoDto, CancellationToken cancellationToken = default)
@@ -60,7 +60,7 @@ public class AlunoService : IAlunoService
         var dtoComHash = ClonarComSenha(alunoDto, PasswordHasher.Hash(alunoDto.Senha ?? string.Empty));
         var entity = dtoComHash.ToEntity(logradouro);
         var adicionado = await alunoRepo.Adicionar(entity, cancellationToken);
-        return adicionado.ToDto();
+        return adicionado.ToDto(logradouro);
     }
 
     public async Task<AlunoDto> AtualizarAsync(AlunoDto alunoDto, CancellationToken cancellationToken = default)
@@ -84,10 +84,20 @@ public class AlunoService : IAlunoService
 
             throw new InvalidOperationException("Já existe outro aluno cadastrado com este e-mail.");
 
-        var dtoComSenhaAtual = ClonarComSenha(alunoDto, existente.Senha.Valor);
-        var atualizado = existente.UpdateFromDto(dtoComSenhaAtual, logradouro);
+        // Se uma nova senha foi informada, valida e gera novo hash; senão mantém o hash atual
+        string senhaParaPersistir = existente.Senha.Valor;
+        if (!string.IsNullOrWhiteSpace(alunoDto.Senha))
+        {
+            var senhaValidacao = Senha.Criar(alunoDto.Senha);
+            if (senhaValidacao.IsFailure)
+                throw new InvalidOperationException($"Erro de validação da senha: {string.Join(", ", senhaValidacao.Notifications.Select(n => n.Mensagem))}");
+            senhaParaPersistir = PasswordHasher.Hash(alunoDto.Senha);
+        }
+
+        var dtoComSenha = ClonarComSenha(alunoDto, senhaParaPersistir);
+        var atualizado = existente.UpdateFromDto(dtoComSenha, logradouro);
         var resultado = await alunoRepo.Atualizar(atualizado, cancellationToken);
-        return resultado.ToDto();
+        return resultado.ToDto(logradouro);
     }
 
     public async Task<bool> RemoverAsync(int id, CancellationToken cancellationToken = default)
@@ -102,7 +112,7 @@ public class AlunoService : IAlunoService
         if (cpfResult.IsFailure) return null;
         var repo = _alunoRepositoryFactory();
         var aluno = await repo.ObterPorCpf(cpfResult.Value!, cancellationToken);
-        return aluno?.ToDto();
+        return aluno is null ? null : await ParaDtoAsync(aluno, cancellationToken);
     }
 
     public async Task<AlunoDto?> ObterPorEmailAsync(string email, CancellationToken cancellationToken = default)
@@ -111,14 +121,14 @@ public class AlunoService : IAlunoService
         if (emailResult.IsFailure) return null;
         var repo = _alunoRepositoryFactory();
         var aluno = await repo.ObterPorEmail(emailResult.Value!, cancellationToken);
-        return aluno?.ToDto();
+        return aluno is null ? null : await ParaDtoAsync(aluno, cancellationToken);
     }
 
     public async Task<IEnumerable<AlunoDto>> ObterPorNomeAsync(string nome, CancellationToken cancellationToken = default)
     {
         var repo = _alunoRepositoryFactory();
         var alunos = await repo.ObterPorNome(nome, cancellationToken);
-        return alunos.Select(a => a.ToDto());
+        return await ParaDtosAsync(alunos, cancellationToken);
     }
 
     public async Task<bool> CpfJaExisteAsync(string cpf, int? id = null, CancellationToken cancellationToken = default)
@@ -149,6 +159,32 @@ public class AlunoService : IAlunoService
 
         var repo = _alunoRepositoryFactory();
         return await repo.TrocarSenha(id, senhaHashResult.Value!, cancellationToken);
+    }
+
+    // A entidade guarda apenas o LogradouroId; o DTO precisa do logradouro completo para exibir/editar o endereço.
+    private async Task<AlunoDto> ParaDtoAsync(Aluno aluno, CancellationToken cancellationToken)
+    {
+        var logradouro = await _logradouroRepositoryFactory().ObterPorId(aluno.Endereco.LogradouroId, cancellationToken);
+        return aluno.ToDto(logradouro);
+    }
+
+    // Versão para listas: busca cada logradouro uma única vez.
+    private async Task<List<AlunoDto>> ParaDtosAsync(IEnumerable<Aluno> alunos, CancellationToken cancellationToken)
+    {
+        var logradouroRepo = _logradouroRepositoryFactory();
+        var cache = new Dictionary<int, Logradouro?>();
+        var resultado = new List<AlunoDto>();
+        foreach (var aluno in alunos)
+        {
+            var logradouroId = aluno.Endereco.LogradouroId;
+            if (!cache.TryGetValue(logradouroId, out var logradouro))
+            {
+                logradouro = await logradouroRepo.ObterPorId(logradouroId, cancellationToken);
+                cache[logradouroId] = logradouro;
+            }
+            resultado.Add(aluno.ToDto(logradouro));
+        }
+        return resultado;
     }
 
     private static AlunoDto ClonarComSenha(AlunoDto origem, string senha) => new()

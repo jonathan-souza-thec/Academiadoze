@@ -1,4 +1,7 @@
-﻿using AcademiaDoZe.Presentation.AppMaui.ViewModels;
+﻿
+// Jonathan de Souza Pereira
+
+using AcademiaDoZe.Presentation.AppMaui.ViewModels;
 using AcademiaDoZe.Application.DTOs;
 
 namespace AcademiaDoZe.Presentation.AppMaui.Views;
@@ -8,6 +11,7 @@ public partial class LogradouroListPage : ContentPage
     public LogradouroListPage(LogradouroListViewModel viewModel)
     {
         InitializeComponent();
+
         BindingContext = viewModel;
     }
 
@@ -21,27 +25,45 @@ public partial class LogradouroListPage : ContentPage
         }
     }
 
+    // Botão Editar
     private async void OnEditButtonClicked(object? sender, EventArgs e)
     {
         try
         {
-            if (sender is Button button && button.BindingContext is LogradouroDto logradouro && BindingContext is LogradouroListViewModel viewModel)
+            if (sender is Button button &&
+                button.BindingContext is LogradouroDto logradouro &&
+                BindingContext is LogradouroListViewModel viewModel)
             {
                 await viewModel.EditLogradouroCommand.ExecuteAsync(logradouro);
             }
         }
-        catch (Exception ex) { await Shell.Current.DisplayAlertAsync("Erro", $"Erro ao editar logradouro: {ex.Message}", "OK"); }
+        catch (Exception ex)
+        {
+            await Shell.Current.DisplayAlertAsync(
+                "Erro",
+                $"Erro ao editar logradouro: {ex.Message}",
+                "OK");
+        }
     }
 
+    // Botão Excluir
     private async void OnDeleteButtonClicked(object? sender, EventArgs e)
     {
         try
         {
-            if (sender is Button button && button.BindingContext is LogradouroDto logradouro && BindingContext is LogradouroListViewModel viewModel)
+            if (sender is Button button &&
+                button.BindingContext is LogradouroDto logradouro &&
+                BindingContext is LogradouroListViewModel viewModel)
             {
                 await viewModel.DeleteLogradouroCommand.ExecuteAsync(logradouro);
             }
         }
-        catch (Exception ex) { await Shell.Current.DisplayAlertAsync("Erro", $"Erro ao excluir logradouro: {ex.Message}", "OK"); }
+        catch (Exception ex)
+        {
+            await Shell.Current.DisplayAlertAsync(
+                "Erro",
+                $"Erro ao excluir logradouro: {ex.Message}",
+                "OK");
+        }
     }
 }
