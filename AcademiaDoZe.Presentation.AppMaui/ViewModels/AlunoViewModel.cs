@@ -1,113 +1,126 @@
-﻿
-// Jonathan de Souza Pereira
+﻿// Jonathan de Souza Pereira
 
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using System.Windows.Input;
 using AcademiaDoZe.Application.DTOs;
-using Microsoft.Maui.Controls;
+using AcademiaDoZe.Application.Interfaces;
+using CommunityToolkit.Mvvm.Input;
 
-namespace AcademiaDoZe.Presentation.AppMaui.ViewModels
+namespace AcademiaDoZe.Presentation.AppMaui.ViewModels;
+
+[QueryProperty(nameof(Id), "Id")]
+public partial class AlunoViewModel : BaseViewModel
 {
-    public class AlunoListViewModel : INotifyPropertyChanged
+    private readonly IAlunoService _alunoService;
+
+    private int _id;
+    private AlunoDto _alunoAtual = new();
+
+    public int Id
     {
-        private bool isRefreshing;
+        get => _id;
+        set => SetProperty(ref _id, value);
+    }
 
-        public ObservableCollection<AlunoDto> Alunos { get; } = new();
+    public AlunoDto AlunoAtual
+    {
+        get => _alunoAtual;
+        set => SetProperty(ref _alunoAtual, value);
+    }
 
-        public bool IsRefreshing
+    public IAsyncRelayCommand SalvarCommand { get; }
+    public IAsyncRelayCommand CancelarCommand { get; }
+
+    public AlunoViewModel(IAlunoService alunoService)
+    {
+        _alunoService = alunoService;
+        Title = "Aluno";
+
+        SalvarCommand = new AsyncRelayCommand(SalvarAsync);
+        CancelarCommand = new AsyncRelayCommand(CancelarAsync);
+    }
+
+    // Chamado pela AlunoPage no OnAppearing
+    public async Task InitializeAsync()
+    {
+        if (IsBusy)
+            return;
+
+        // Novo aluno: formulário em branco
+        if (Id <= 0)
         {
-            get => isRefreshing;
-            set
-            {
-                if (isRefreshing != value)
-                {
-                    isRefreshing = value;
-                    OnPropertyChanged();
-                }
-            }
+            AlunoAtual = new AlunoDto();
+            return;
         }
 
-        public ICommand LoadAlunosCommand { get; }
-        public ICommand EditAlunoCommand { get; }
-        public ICommand DeleteAlunoCommand { get; }
-
-        public AlunoListViewModel()
+        // Edição: carrega o aluno existente
+        try
         {
-            LoadAlunosCommand = new Command(
-                async () => await LoadAlunosAsync());
+            IsBusy = true;
 
-            EditAlunoCommand = new Command<AlunoDto>(
-                async aluno => await EditAlunoAsync(aluno));
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
 
-            DeleteAlunoCommand = new Command<AlunoDto>(
-                async aluno => await DeleteAlunoAsync(aluno));
+            var resultado = await _alunoService.ObterPorIdAsync(Id, cts.Token);
+
+            if (resultado is not null)
+                AlunoAtual = resultado;
         }
-
-        private async Task LoadAlunosAsync()
+        catch (OperationCanceledException)
         {
-            try
-            {
-                IsRefreshing = true;
-
-                // Dados temporários para teste.
-                await Task.Delay(500);
-
-                if (Alunos.Count == 0)
-                {
-                    Alunos.Add(new AlunoDto { Nome = "João da Silva" });
-                    Alunos.Add(new AlunoDto { Nome = "Maria Oliveira" });
-                    Alunos.Add(new AlunoDto { Nome = "Carlos Souza" });
-                }
-            }
-            catch (Exception ex)
-            {
-                await Shell.Current.DisplayAlert(
-                    "Erro",
-                    $"Não foi possível carregar os alunos: {ex.Message}",
-                    "OK");
-            }
-            finally
-            {
-                IsRefreshing = false;
-            }
-        }
-
-        private async Task EditAlunoAsync(AlunoDto? aluno)
-        {
-            if (aluno is null)
-                return;
-
-            await Shell.Current.DisplayAlert(
-                "Editar aluno",
-                $"Aluno selecionado: {aluno.Nome}",
+            await Shell.Current.DisplayAlertAsync(
+                "Tempo esgotado",
+                "O carregamento demorou demais.",
                 "OK");
         }
-
-        private async Task DeleteAlunoAsync(AlunoDto? aluno)
+        catch (Exception ex)
         {
-            if (aluno is null)
-                return;
-
-            bool confirmar = await Shell.Current.DisplayAlert(
-                "Excluir aluno",
-                $"Deseja excluir {aluno.Nome}?",
-                "Sim",
-                "Não");
-
-            if (confirmar)
-                Alunos.Remove(aluno);
+            await Shell.Current.DisplayAlertAsync(
+                "Erro",
+                $"Não foi possível carregar o aluno: {ex.Message}",
+                "OK");
         }
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-
-        protected void OnPropertyChanged(
-            [CallerMemberName] string? propertyName = null)
+        finally
         {
-            PropertyChanged?.Invoke(
-                this,
-                new PropertyChangedEventArgs(propertyName));
+            IsBusy = false;
         }
+    }
+
+    private async Task SalvarAsync()
+    {
+        if (IsBusy)
+            return;
+
+        try
+        {
+            IsBusy = true;
+
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+
+            if (AlunoAtual.Id > 0)
+                await _alunoService.AtualizarAsync(AlunoAtual, cts.Token);
+            else
+                await _alunoService.AdicionarAsync(AlunoAtual, cts.Token);
+
+            await Shell.Current.DisplayAlertAsync("Sucesso", "Aluno salvo com sucesso!", "OK");
+            await Shell.Current.GoToAsync("..");
+        }
+        catch (OperationCanceledException)
+        {
+            await Shell.Current.DisplayAlertAsync("Tempo esgotado", "O salvamento demorou demais.", "OK");
+        }
+        catch (Exception ex)
+        {
+            await Shell.Current.DisplayAlertAsync(
+                "Erro",
+                $"Não foi possível salvar o aluno: {ex.Message}",
+                "OK");
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    private async Task CancelarAsync()
+    {
+        await Shell.Current.GoToAsync("..");
     }
 }
