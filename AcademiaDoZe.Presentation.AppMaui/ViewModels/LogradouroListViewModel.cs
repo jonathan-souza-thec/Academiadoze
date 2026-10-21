@@ -1,5 +1,4 @@
-﻿
-// Jonathan de Souza Pereira
+﻿// Jonathan de Souza Pereira
 
 using AcademiaDoZe.Application.DTOs;
 using AcademiaDoZe.Application.Interfaces;
@@ -214,7 +213,7 @@ public partial class LogradouroListViewModel : BaseViewModel
     {
         try
         {
-            await Shell.Current.GoToAsync(nameof(LogradouroPage));
+            await Shell.Current.GoToAsync("logradouro");
         }
         catch (Exception ex)
         {
@@ -233,14 +232,7 @@ public partial class LogradouroListViewModel : BaseViewModel
 
         try
         {
-            var parametros = new Dictionary<string, object>
-            {
-                ["Logradouro"] = logradouro
-            };
-
-            await Shell.Current.GoToAsync(
-                nameof(LogradouroPage),
-                parametros);
+            await Shell.Current.GoToAsync($"logradouro?Id={logradouro.Id}");
         }
         catch (Exception ex)
         {

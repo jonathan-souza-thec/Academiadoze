@@ -11,10 +11,30 @@ public partial class AlunoListViewModel : BaseViewModel
 {
     private readonly IAlunoService _alunoService;
 
+    public ObservableCollection<string> FilterTypes { get; } = ["Nome", "CPF", "Id", "Email"];
+
+    private ObservableCollection<AlunoDto> _alunos = [];
+    public ObservableCollection<AlunoDto> Alunos
+    {
+        get => _alunos;
+        set => SetProperty(ref _alunos, value);
+    }
+
+    private string _searchText = string.Empty;
+    public string SearchText
+    {
+        get => _searchText;
+        set => SetProperty(ref _searchText, value);
+    }
+
+    private string _selectedFilterType = "Nome";
+    public string SelectedFilterType
+    {
+        get => _selectedFilterType;
+        set => SetProperty(ref _selectedFilterType, value);
+    }
+
     private bool _isRefreshing;
-
-    public ObservableCollection<AlunoDto> Alunos { get; } = [];
-
     public bool IsRefreshing
     {
         get => _isRefreshing;
@@ -25,6 +45,42 @@ public partial class AlunoListViewModel : BaseViewModel
     {
         _alunoService = alunoService;
         Title = "Alunos";
+    }
+
+    [RelayCommand]
+    private async Task AddAlunoAsync()
+    {
+        try
+        {
+            await Shell.Current.GoToAsync("aluno");
+        }
+        catch (Exception ex)
+        {
+            await Shell.Current.DisplayAlertAsync("Erro", $"Erro ao navegar para tela de cadastro: {ex.Message}", "OK");
+        }
+    }
+
+    [RelayCommand]
+    private async Task EditAlunoAsync(AlunoDto? aluno)
+    {
+        try
+        {
+            if (aluno == null)
+                return;
+
+            await Shell.Current.GoToAsync($"aluno?Id={aluno.Id}");
+        }
+        catch (Exception ex)
+        {
+            await Shell.Current.DisplayAlertAsync("Erro", $"Erro ao navegar para tela de edição: {ex.Message}", "OK");
+        }
+    }
+
+    [RelayCommand]
+    private async Task RefreshAsync()
+    {
+        IsRefreshing = true;
+        await LoadAlunosAsync();
     }
 
     [RelayCommand]
@@ -40,31 +96,25 @@ public partial class AlunoListViewModel : BaseViewModel
         {
             IsBusy = true;
 
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
 
-            var alunos = await _alunoService.ObterTodosAsync(cts.Token);
+            var lista = await _alunoService.ObterTodosAsync(cts.Token) ?? [];
 
-            Alunos.Clear();
-
-            if (alunos is not null)
+            await MainThread.InvokeOnMainThreadAsync(() =>
             {
-                foreach (var aluno in alunos)
+                Alunos.Clear();
+                foreach (var aluno in lista)
                     Alunos.Add(aluno);
-            }
+                OnPropertyChanged(nameof(Alunos));
+            });
         }
         catch (OperationCanceledException)
         {
-            await Shell.Current.DisplayAlertAsync(
-                "Tempo esgotado",
-                "O carregamento demorou demais. Verifique a conexão com o banco de dados.",
-                "OK");
+            await Shell.Current.DisplayAlertAsync("Tempo Esgotado", "O carregamento dos alunos expirou. Verifique a conexão.", "OK");
         }
         catch (Exception ex)
         {
-            await Shell.Current.DisplayAlertAsync(
-                "Erro",
-                $"Não foi possível carregar os alunos: {ex.Message}",
-                "OK");
+            await Shell.Current.DisplayAlertAsync("Erro", $"Erro ao carregar alunos: {ex.Message}", "OK");
         }
         finally
         {
@@ -74,28 +124,92 @@ public partial class AlunoListViewModel : BaseViewModel
     }
 
     [RelayCommand]
-    private async Task AddAlunoAsync()
+    private async Task SearchAlunosAsync()
     {
-        await Shell.Current.GoToAsync("aluno");
-    }
-
-    [RelayCommand]
-    private async Task EditAlunoAsync(AlunoDto? aluno)
-    {
-        if (aluno is null)
+        if (IsBusy)
             return;
 
-        await Shell.Current.GoToAsync($"aluno?Id={aluno.Id}");
+        try
+        {
+            IsBusy = true;
+
+            IEnumerable<AlunoDto> resultados = [];
+
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+            if (string.IsNullOrWhiteSpace(SearchText))
+            {
+                resultados = await _alunoService.ObterTodosAsync(cts.Token) ?? [];
+            }
+            else if (SelectedFilterType == "Nome")
+            {
+                resultados = await _alunoService.ObterPorNomeAsync(SearchText.Trim(), cts.Token) ?? [];
+            }
+            else if (SelectedFilterType == "CPF")
+            {
+                var cpfLimpo = new string([.. SearchText.Where(char.IsDigit)]);
+
+                if (cpfLimpo.Length != 11)
+                {
+                    await Shell.Current.DisplayAlertAsync("Validação", "Para buscar por CPF, informe os 11 dígitos numéricos.", "OK");
+                    return;
+                }
+
+                var aluno = await _alunoService.ObterPorCpfAsync(cpfLimpo, cts.Token);
+                if (aluno != null)
+                    resultados = [aluno];
+            }
+            else if (SelectedFilterType == "Id")
+            {
+                if (!int.TryParse(SearchText.Trim(), out int id) || id <= 0)
+                {
+                    await Shell.Current.DisplayAlertAsync("Validação", "Para buscar por ID, informe um número inteiro positivo válido.", "OK");
+                    return;
+                }
+
+                var aluno = await _alunoService.ObterPorIdAsync(id, cts.Token);
+                if (aluno != null)
+                    resultados = [aluno];
+            }
+            else if (SelectedFilterType == "Email")
+            {
+                var aluno = await _alunoService.ObterPorEmailAsync(SearchText.Trim(), cts.Token);
+                if (aluno != null)
+                    resultados = [aluno];
+            }
+
+            var lista = resultados.ToList();
+
+            await MainThread.InvokeOnMainThreadAsync(() =>
+            {
+                Alunos.Clear();
+                foreach (var item in lista)
+                    Alunos.Add(item);
+                OnPropertyChanged(nameof(Alunos));
+            });
+        }
+        catch (OperationCanceledException)
+        {
+            await Shell.Current.DisplayAlertAsync("Tempo Esgotado", "A busca de alunos expirou. Verifique a conexão com o banco.", "OK");
+        }
+        catch (Exception ex)
+        {
+            await Shell.Current.DisplayAlertAsync("Erro", $"Erro ao buscar alunos: {ex.Message}", "OK");
+        }
+        finally
+        {
+            IsBusy = false;
+        }
     }
 
     [RelayCommand]
     private async Task DeleteAlunoAsync(AlunoDto? aluno)
     {
-        if (aluno is null || IsBusy)
+        if (aluno == null || IsBusy)
             return;
 
         bool confirmar = await Shell.Current.DisplayAlertAsync(
-            "Confirmar exclusão",
+            "Confirmar Exclusão",
             $"Deseja realmente excluir o aluno {aluno.Nome}?",
             "Sim",
             "Não");
@@ -107,50 +221,43 @@ public partial class AlunoListViewModel : BaseViewModel
         {
             IsBusy = true;
 
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
 
-            bool removido = await _alunoService.RemoverAsync(aluno.Id, cts.Token);
+            bool sucesso = await _alunoService.RemoverAsync(aluno.Id, cts.Token);
 
-            if (removido)
+            if (sucesso)
             {
                 Alunos.Remove(aluno);
-
-                await Shell.Current.DisplayAlertAsync(
-                    "Sucesso",
-                    "Aluno excluído com sucesso!",
-                    "OK");
+                await Shell.Current.DisplayAlertAsync("Sucesso", "Aluno excluído com sucesso!", "OK");
             }
             else
             {
-                await Shell.Current.DisplayAlertAsync(
-                    "Aviso",
-                    "Não foi possível excluir o aluno.",
-                    "OK");
+                await Shell.Current.DisplayAlertAsync("Erro", "Não foi possível excluir o aluno.", "OK");
             }
         }
         catch (OperationCanceledException)
         {
-            await Shell.Current.DisplayAlertAsync(
-                "Tempo esgotado",
-                "A exclusão demorou demais.",
-                "OK");
+            await Shell.Current.DisplayAlertAsync("Tempo Esgotado", "A exclusão do aluno expirou. Verifique a conexão.", "OK");
         }
         catch (Exception ex)
         {
-            await Shell.Current.DisplayAlertAsync(
-                "Erro",
-                $"Não foi possível excluir o aluno: {ex.Message}",
-                "OK");
+            if (ex.Message.Contains("FOREIGN KEY", StringComparison.OrdinalIgnoreCase) ||
+                ex.Message.Contains("constraint", StringComparison.OrdinalIgnoreCase) ||
+                ex.Message.Contains("REFERENCE", StringComparison.OrdinalIgnoreCase))
+            {
+                await Shell.Current.DisplayAlertAsync(
+                    "Não Permitido",
+                    "Este aluno não pode ser excluído pois possui registros vinculados no sistema (ex: matrículas ou acessos).",
+                    "OK");
+            }
+            else
+            {
+                await Shell.Current.DisplayAlertAsync("Erro", $"Erro ao excluir aluno: {ex.Message}", "OK");
+            }
         }
         finally
         {
             IsBusy = false;
         }
-    }
-
-    [RelayCommand]
-    private async Task RefreshAsync()
-    {
-        await LoadAlunosAsync();
     }
 }
