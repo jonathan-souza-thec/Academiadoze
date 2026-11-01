@@ -50,21 +50,23 @@
 
 	<ItemGroup>
 
-		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.12" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.14" />
 
-		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.110" />
+		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.120" />
 
-		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.12" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.14" />
 
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
 
 		<PackageReference Include="CommunityToolkit.Maui" Version="15.0.1" />
 
-		<PackageReference Include="Microsoft.Data.Sqlite.Core" Version="10.0.12" />
+		<PackageReference Include="Microsoft.Data.Sqlite.Core" Version="10.0.14" />
 
 		<PackageReference Include="SQLitePCLRaw.bundle_green" Version="2.1.11" />
 
 		<PackageReference Include="Syncfusion.Maui.Toolkit" Version="1.0.11" />
+
+		<PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.14" />
 
 	</ItemGroup>
 
@@ -99,6 +101,12 @@
 		<!-- Página de listagem de alunos -->
 		<MauiXaml Update="Views\AlunoListPage.xaml">
 			<Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+		<MauiXaml Update="Views\MatriculaListPage.xaml">
+		  <Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+		<MauiXaml Update="Views\MatriculaPage.xaml">
+		  <Generator>MSBuild:Compile</Generator>
 		</MauiXaml>
 
 	</ItemGroup>

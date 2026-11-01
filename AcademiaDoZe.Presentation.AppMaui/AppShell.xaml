@@ -100,6 +100,19 @@
         <ShellContent ContentTemplate="{DataTemplate views:AlunoListPage}" Route="alunos" />
     </FlyoutItem>
 
+    <FlyoutItem Title="Matrículas">
+        <FlyoutItem.Icon>
+            <FontImageSource
+                FontFamily="MaterialIcons"
+                Glyph="&#xefec;"
+                Color="{AppThemeBinding Light=#E8500A, Dark=#FF7B3A}"
+                Size="24"/>
+        </FlyoutItem.Icon>
+        <ShellContent ContentTemplate="{DataTemplate views:MatriculaListPage}" Route="matriculas" />
+    </FlyoutItem>
+
+
+
 
 </Shell>
     
