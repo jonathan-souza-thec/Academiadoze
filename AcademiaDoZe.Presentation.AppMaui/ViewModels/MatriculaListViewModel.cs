@@ -10,7 +10,7 @@ public partial class MatriculaListViewModel : BaseViewModel
 {
     private readonly IMatriculaService _matriculaService;
 
-    public ObservableCollection<string> FilterTypes { get; } = ["Id", "Id Aluno", "Ativas", "Vencendo em dias"];
+    public ObservableCollection<string> FilterTypes { get; } = ["Todas", "Nome", "CPF", "Id", "Id Aluno", "Ativas", "Vencendo em dias"];
 
     private string _searchText = string.Empty;
     public string SearchText
@@ -19,7 +19,7 @@ public partial class MatriculaListViewModel : BaseViewModel
         set => SetProperty(ref _searchText, value);
     }
 
-    private string _selectedFilterType = "Ativas";
+    private string _selectedFilterType = "Todas";
     public string SelectedFilterType
     {
         get => _selectedFilterType;
@@ -52,6 +52,23 @@ public partial class MatriculaListViewModel : BaseViewModel
         var hoje = DateOnly.FromDateTime(DateTime.Today);
         return m.DataInicio <= hoje && m.DataFim >= hoje;
     }
+
+    // Remove acentos e ignora maiúsculas/minúsculas para comparar nomes
+    private static string Normalizar(string? texto)
+    {
+        if (string.IsNullOrWhiteSpace(texto)) return string.Empty;
+        var decomposto = texto.Trim().Normalize(System.Text.NormalizationForm.FormD);
+        var sb = new System.Text.StringBuilder();
+        foreach (var c in decomposto)
+        {
+            if (System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c) != System.Globalization.UnicodeCategory.NonSpacingMark)
+                sb.Append(c);
+        }
+        return sb.ToString().ToLowerInvariant();
+    }
+
+    private static string SomenteDigitos(string? texto)
+        => new((texto ?? string.Empty).Where(char.IsDigit).ToArray());
 
     [RelayCommand]
     private async Task AddMatriculaAsync()
@@ -147,6 +164,27 @@ public partial class MatriculaListViewModel : BaseViewModel
             {
                 var todas = await _matriculaService.ObterTodosAsync(cts.Token) ?? [];
                 resultados = SelectedFilterType == "Ativas" ? todas.Where(EstaAtiva) : todas;
+            }
+            else if (SelectedFilterType == "Todas")
+            {
+                resultados = await _matriculaService.ObterTodosAsync(cts.Token) ?? [];
+            }
+            else if (SelectedFilterType == "Nome")
+            {
+                var termo = Normalizar(texto);
+                var todas = await _matriculaService.ObterTodosAsync(cts.Token) ?? [];
+                resultados = todas.Where(m => Normalizar(m.AlunoMatricula?.Nome).Contains(termo));
+            }
+            else if (SelectedFilterType == "CPF")
+            {
+                var cpf = SomenteDigitos(texto);
+                if (cpf.Length == 0)
+                {
+                    await Shell.Current.DisplayAlertAsync("Aviso", "Para busca por CPF, informe ao menos um dígito.", "OK");
+                    return;
+                }
+                var todas = await _matriculaService.ObterTodosAsync(cts.Token) ?? [];
+                resultados = todas.Where(m => SomenteDigitos(m.AlunoMatricula?.Cpf).Contains(cpf));
             }
             else if (SelectedFilterType == "Id")
             {
