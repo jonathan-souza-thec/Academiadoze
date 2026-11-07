@@ -1,6 +1,7 @@
 ﻿// Jonathan de Souza Pereira
+
+using AcademiaDoZe.Application.Common;
 using AcademiaDoZe.Application.DTOs;
-using AcademiaDoZe.Application.Exceptions;
 using AcademiaDoZe.Application.Interfaces;
 using AcademiaDoZe.Application.Mappings;
 using AcademiaDoZe.Domain.Entities;
@@ -26,44 +27,36 @@ public class AcessoAlunoService : IAcessoAlunoService
 
     public async Task<AcessoAlunoDto?> ObterPorIdAsync(int id, CancellationToken cancellationToken = default)
     {
-        var repo = _repoFactory();
-        var acesso = await repo.ObterPorId(id, cancellationToken);
+        var acesso = await _repoFactory().ObterPorId(id, cancellationToken);
         if (acesso == null) return null;
-
-        var dia = DateOnly.FromDateTime(acesso.DataHora);
-        var doDia = await repo.ObterAcessosPorAlunoPeriodo(acesso.AlunoId, dia, dia, cancellationToken);
-        var visita = AcessoPareamento
-            .Parear(doDia.Select(a => new AcessoEvento(a.Id, a.DataHora)))
-            .FirstOrDefault(v => v.Id == id || v.SaidaId == id);
-        if (visita == null) return null;
-
-        var aluno = await _alunoRepoFactory().ObterPorId(acesso.AlunoId, cancellationToken);
-        if (aluno == null) return null;
-
-        return ToDto(visita, aluno.ToDto());
+        return (await ParaDtosAsync([acesso], cancellationToken)).First();
     }
 
     public async Task<IEnumerable<AcessoAlunoDto>> ObterTodosAsync(CancellationToken cancellationToken = default)
     {
         var acessos = await _repoFactory().ObterTodos(cancellationToken);
-        return await ToDtosAsync(acessos, cancellationToken);
-    }
-
-    public async Task<IEnumerable<AcessoAlunoDto>> ObterDoDiaAsync(CancellationToken cancellationToken = default)
-    {
-        var hoje = DateOnly.FromDateTime(DateTime.Today);
-        var acessos = await _repoFactory().ObterAcessosPorAlunoPeriodo(null, hoje, hoje, cancellationToken);
-        return await ToDtosAsync(acessos, cancellationToken);
+        return await ParaDtosAsync(acessos, cancellationToken);
     }
 
     public async Task<IEnumerable<AcessoAlunoDto>> ObterPorAlunoAsync(int alunoId, CancellationToken cancellationToken = default)
     {
         var acessos = await _repoFactory().ObterAcessosPorAlunoPeriodo(alunoId, null, null, cancellationToken);
-        return await ToDtosAsync(acessos, cancellationToken);
+        return await ParaDtosAsync(acessos, cancellationToken);
     }
 
-    public async Task<bool> EstaNaAcademiaAsync(int alunoId, CancellationToken cancellationToken = default)
-        => await _repoFactory().EstaNaAcademia(alunoId, cancellationToken);
+    public async Task<IEnumerable<AcessoAlunoDto>> ObterDeHojeAsync(CancellationToken cancellationToken = default)
+    {
+        var hoje = DateOnly.FromDateTime(DateTime.Now);
+        var acessos = await _repoFactory().ObterAcessosPorAlunoPeriodo(null, hoje, hoje, cancellationToken);
+        return await ParaDtosAsync(acessos, cancellationToken);
+    }
+
+    public async Task<AcessoAlunoDto?> ObterAcessoAbertoAsync(int alunoId, CancellationToken cancellationToken = default)
+    {
+        var ultimo = await _repoFactory().ObterUltimoAcesso(alunoId, cancellationToken);
+        if (ultimo is not { EstaDentro: true }) return null;
+        return (await ParaDtosAsync([ultimo], cancellationToken)).First();
+    }
 
     public async Task<AcessoAlunoDto> RegistrarEntradaAsync(int alunoId, CancellationToken cancellationToken = default)
     {
@@ -72,96 +65,103 @@ public class AcessoAlunoService : IAcessoAlunoService
         var aluno = await _alunoRepoFactory().ObterPorId(alunoId, cancellationToken)
             ?? throw new InvalidOperationException($"Aluno com ID {alunoId} não encontrado.");
 
-        if (await repo.EstaNaAcademia(alunoId, cancellationToken))
-            throw new AcessoNegadoException("Acesso negado: o aluno já está dentro da academia. Registre a saída.");
+        var agora = DateTime.Now;
+        var hoje = DateOnly.FromDateTime(agora);
+        var dto = new AcessoAlunoDto { Aluno = aluno.ToDto(), Entrada = agora };
 
-        // Regra: validar se possui matrícula ativa
-        var hoje = DateOnly.FromDateTime(DateTime.Today);
-        var matricula = await _matriculaRepoFactory().ObterMatriculaAtivaPorAluno(alunoId, cancellationToken);
-        if (matricula == null || matricula.DataInicio > hoje)
-            throw new AcessoNegadoException("Acesso negado: o aluno não possui matrícula ativa.");
+        // Já está dentro? Precisa registrar a saída antes.
+        var ultimo = await repo.ObterUltimoAcesso(alunoId, cancellationToken);
+        if (ultimo is { EstaDentro: true })
+            return Negar(dto, "Acesso negado: o aluno já possui uma entrada em aberto. Registre a saída primeiro.");
 
-        var criado = AcessoAluno.Criar(0, aluno, AcessoPareamento.Agora());
-        if (criado.IsFailure)
-            throw new AcessoNegadoException("Acesso negado: " + AcessoPareamento.TraduzirNotificacoes(criado.Notifications));
+        // Regra: validar matrícula ativa (início <= hoje <= fim)
+        var matriculas = await _matriculaRepoFactory().ObterPorAluno(alunoId, cancellationToken);
+        var ativa = matriculas
+            .Where(m => m.DataInicio <= hoje && m.DataFim >= hoje)
+            .OrderByDescending(m => m.DataFim)
+            .FirstOrDefault();
 
-        var adicionado = await repo.Adicionar(criado.Value!, cancellationToken);
+        if (ativa == null)
+            return Negar(dto, "Acesso negado: o aluno não possui matrícula ativa.");
+
+        var criar = AcessoAluno.Criar(0, aluno, agora);
+        if (criar.IsFailure)
+            return Negar(dto, "Acesso negado: fora do horário de funcionamento (06:00 às 22:00).");
+
+        var salvo = await repo.Adicionar(criar.Value!, cancellationToken);
 
         // Regra: na entrada, mostrar quanto tempo ainda tem de plano
-        int dias = matricula.DataFim.DayNumber - hoje.DayNumber;
+        int dias = ativa.DataFim.DayNumber - hoje.DayNumber;
 
-        return new AcessoAlunoDto
-        {
-            Id = adicionado.Id,
-            Aluno = aluno.ToDto(),
-            Entrada = adicionado.DataHora,
-            DiasRestantesPlano = dias,
-            Mensagem = $"Entrada autorizada. Dias restantes de plano: {dias} dia(s)."
-        };
+        dto.Id = salvo.Id;
+        dto.Autorizado = true;
+        dto.DiasRestantesPlano = dias;
+        dto.Mensagem = $"Entrada autorizada. Dias restantes de plano: {dias} dia(s).";
+        return dto;
     }
 
-    public async Task<AcessoAlunoDto> RegistrarSaidaAsync(int alunoId, CancellationToken cancellationToken = default)
+    public async Task<AcessoAlunoDto> RegistrarSaidaAsync(int acessoId, CancellationToken cancellationToken = default)
     {
         var repo = _repoFactory();
 
-        var aluno = await _alunoRepoFactory().ObterPorId(alunoId, cancellationToken)
-            ?? throw new InvalidOperationException($"Aluno com ID {alunoId} não encontrado.");
+        var acesso = await repo.ObterPorId(acessoId, cancellationToken)
+            ?? throw new InvalidOperationException($"Acesso com ID {acessoId} não encontrado.");
 
-        var ultimo = await repo.ObterUltimoAcesso(alunoId, cancellationToken);
-        if (ultimo == null || !await repo.EstaNaAcademia(alunoId, cancellationToken))
-            throw new AcessoNegadoException("Saída não registrada: o aluno não possui entrada em aberto hoje.");
-
-        var saida = AcessoPareamento.Agora();
-        if (saida < ultimo.DataHora) saida = ultimo.DataHora;
-        // a academia fecha às 22h: saídas após esse horário são registradas no fechamento
-        var fechamento = saida.Date.AddHours(22);
-        if (saida > fechamento) saida = fechamento < ultimo.DataHora ? ultimo.DataHora : fechamento;
-
-        var criado = AcessoAluno.Criar(0, aluno, saida);
-        if (criado.IsFailure)
-            throw new AcessoNegadoException("Saída não registrada: " + AcessoPareamento.TraduzirNotificacoes(criado.Notifications));
-
-        var adicionado = await repo.Adicionar(criado.Value!, cancellationToken);
-
-        // Regra: na saída, mostrar o tempo que permaneceu na academia
-        var permanencia = adicionado.DataHora - ultimo.DataHora;
-
-        return new AcessoAlunoDto
+        var aluno = await _alunoRepoFactory().ObterPorId(acesso.AlunoId, cancellationToken);
+        var dto = new AcessoAlunoDto
         {
-            Id = ultimo.Id,
-            Aluno = aluno.ToDto(),
-            Entrada = ultimo.DataHora,
-            Saida = adicionado.DataHora,
-            Mensagem = $"Saída registrada. Tempo de permanência: {AcessoPareamento.Formatar(permanencia)}."
+            Id = acesso.Id,
+            Aluno = aluno?.ToDto(),
+            Entrada = acesso.DataHora,
+            Saida = acesso.DataHoraSaida
         };
+
+        var resultado = acesso.RegistrarSaida(DateTime.Now);
+        if (resultado.IsFailure)
+            return Negar(dto, "Saída não registrada: este acesso já possui saída.");
+
+        await repo.Atualizar(acesso, cancellationToken);
+
+        dto.Saida = acesso.DataHoraSaida;
+        dto.Autorizado = true;
+        // Regra: na saída, mostrar o tempo que permaneceu na academia
+        dto.Mensagem = $"Saída registrada. Tempo de permanência: {acesso.TempoPermanencia!.Value.ToHoraMinutoSegundo()}.";
+        return dto;
     }
 
     public async Task<bool> RemoverAsync(int id, CancellationToken cancellationToken = default)
         => await _repoFactory().Remover(id, cancellationToken);
 
-    private static AcessoAlunoDto ToDto(AcessoVisita visita, AlunoDto aluno) => new()
+    private static AcessoAlunoDto Negar(AcessoAlunoDto dto, string mensagem)
     {
-        Id = visita.Id,
-        Aluno = aluno,
-        Entrada = visita.Entrada,
-        Saida = visita.Saida
-    };
+        dto.Autorizado = false;
+        dto.Mensagem = mensagem;
+        return dto;
+    }
 
-    private async Task<IEnumerable<AcessoAlunoDto>> ToDtosAsync(IEnumerable<AcessoAluno> acessos, CancellationToken cancellationToken)
+    private async Task<List<AcessoAlunoDto>> ParaDtosAsync(IEnumerable<AcessoAluno> acessos, CancellationToken cancellationToken)
     {
-        var resultado = new List<AcessoAlunoDto>();
+        var alunoRepo = _alunoRepoFactory();
+        var cache = new Dictionary<int, AlunoDto?>();
+        var lista = new List<AcessoAlunoDto>();
 
-        foreach (var grupo in acessos.GroupBy(a => a.AlunoId))
+        foreach (var a in acessos)
         {
-            var aluno = await _alunoRepoFactory().ObterPorId(grupo.Key, cancellationToken);
-            if (aluno == null) continue;
+            if (!cache.TryGetValue(a.AlunoId, out var alunoDto))
+            {
+                var aluno = await alunoRepo.ObterPorId(a.AlunoId, cancellationToken);
+                alunoDto = aluno?.ToDto();
+                cache[a.AlunoId] = alunoDto;
+            }
 
-            var alunoDto = aluno.ToDto();
-            var visitas = AcessoPareamento.Parear(grupo.Select(a => new AcessoEvento(a.Id, a.DataHora)));
-            foreach (var visita in visitas)
-                resultado.Add(ToDto(visita, alunoDto));
+            lista.Add(new AcessoAlunoDto
+            {
+                Id = a.Id,
+                Aluno = alunoDto,
+                Entrada = a.DataHora,
+                Saida = a.DataHoraSaida
+            });
         }
-
-        return resultado.OrderByDescending(r => r.Saida ?? r.Entrada).ToList();
+        return lista;
     }
 }

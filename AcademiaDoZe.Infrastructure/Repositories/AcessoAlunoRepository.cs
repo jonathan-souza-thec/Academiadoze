@@ -1,5 +1,4 @@
-﻿
-// Jonathan de Souza Pereira
+﻿// Jonathan de Souza Pereira
 
 using AcademiaDoZe.Domain.Entities;
 using AcademiaDoZe.Domain.Repositories;
@@ -7,479 +6,241 @@ using AcademiaDoZe.Infrastructure.Data;
 using AcademiaDoZe.Infrastructure.Exceptions;
 using System.Data;
 using System.Data.Common;
+using System.Text;
 
 namespace AcademiaDoZe.Infrastructure.Repositories;
 
 public class AcessoAlunoRepository : BaseRepository, IAcessoAlunoRepository
 {
-    public AcessoAlunoRepository(
-        string connectionString,
-        DatabaseType databaseType)
+    private const int TipoAluno = 0;
+
+    public AcessoAlunoRepository(string connectionString, DatabaseType databaseType)
         : base(connectionString, databaseType)
     {
     }
 
-    // ============================================================
-    // MAPEAMENTO
-    // ============================================================
+    private const string BaseSelectQuery =
+        "SELECT id_acesso, pessoa_id, data_hora, data_hora_saida FROM tb_acesso WHERE pessoa_tipo = 0";
 
-    private static AcessoAluno Map(DbDataReader reader)
+    private static AcessoAluno Map(DbDataReader reader) =>
+        AcessoAluno.Reconstituir(
+            reader.GetInt32Value("id_acesso"),
+            reader.GetInt32Value("pessoa_id"),
+            reader.GetDateTimeValue("data_hora"),
+            reader.GetNullableDateTime("data_hora_saida"));
+
+    private static async Task<List<AcessoAluno>> LerTodosAsync(DbCommand command, CancellationToken ct)
     {
-        int id = reader.GetInt32Value("id_acesso");
-        int alunoId = reader.GetInt32Value("pessoa_id");
-        DateTime entrada = reader.GetDateTimeValue("data_hora");
-
-        DateTime? saida = reader["data_saida"] == DBNull.Value
-            ? null
-            : Convert.ToDateTime(reader["data_saida"]);
-
-        return AcessoAluno.Reconstituir(
-            id,
-            alunoId,
-            entrada,
-            saida);
+        await using var reader = await command.ExecuteReaderAsync(ct);
+        var lista = new List<AcessoAluno>();
+        while (await reader.ReadAsync(ct))
+            lista.Add(Map(reader));
+        return lista;
     }
 
-    // ============================================================
-    // CONSULTA POR ID
-    // ============================================================
-
-    public async Task<AcessoAluno?> ObterPorId(
-        int id,
-        CancellationToken cancellationToken = default)
+    public async Task<AcessoAluno?> ObterPorId(int id, CancellationToken cancellationToken = default)
     {
-        const string sql = """
-            SELECT id_acesso, pessoa_id, data_hora, data_saida
-            FROM tb_acesso
-            WHERE id_acesso = @Id
-              AND pessoa_tipo = 0
-            """;
-
-        await using var command =
-            await CreateCommandAsync(sql, cancellationToken);
-
-        command.AddParameter("@Id", id, DbType.Int32);
-
-        await using var reader =
-            await command.ExecuteReaderAsync(cancellationToken);
-
-        return await reader.ReadAsync(cancellationToken)
-            ? Map(reader)
-            : null;
-    }
-
-    // ============================================================
-    // CONSULTAR TODOS OS ACESSOS
-    // ============================================================
-
-    public async Task<IEnumerable<AcessoAluno>> ObterTodos(
-        CancellationToken cancellationToken = default)
-    {
-        const string sql = """
-            SELECT id_acesso, pessoa_id, data_hora, data_saida
-            FROM tb_acesso
-            WHERE pessoa_tipo = 0
-            ORDER BY data_hora DESC
-            """;
-
-        await using var command =
-            await CreateCommandAsync(sql, cancellationToken);
-
-        await using var reader =
-            await command.ExecuteReaderAsync(cancellationToken);
-
-        var acessos = new List<AcessoAluno>();
-
-        while (await reader.ReadAsync(cancellationToken))
-            acessos.Add(Map(reader));
-
-        return acessos;
-    }
-
-    // ============================================================
-    // ADICIONAR ACESSO
-    // ============================================================
-
-    public async Task<AcessoAluno> Adicionar(
-        AcessoAluno entity,
-        CancellationToken cancellationToken = default)
-    {
-        string sql = DbProvider.FormatInsertQuery(
-            """
-            INSERT INTO tb_acesso
-                (pessoa_tipo, pessoa_id, data_hora, data_saida)
-            VALUES
-                (0, @AlunoId, @Entrada, @Saida)
-            """,
-            _databaseType);
-
-        await using var command =
-            await CreateCommandAsync(sql, cancellationToken);
-
-        command.AddParameter(
-            "@AlunoId",
-            entity.AlunoId,
-            DbType.Int32);
-
-        command.AddParameter(
-            "@Entrada",
-            entity.DataHora,
-            DbType.DateTime);
-
-        command.AddParameter(
-            "@Saida",
-            (object?)entity.Saida ?? DBNull.Value,
-            DbType.DateTime);
-
-        int id = await command.ExecuteScalarIdAsync(
-            "ERRO_ADICIONAR_ACESSO_ALUNO",
-            "Não foi possível obter o ID do acesso cadastrado.",
-            cancellationToken);
-
-        typeof(Entity)
-            .GetProperty("Id")!
-            .SetValue(entity, id);
-
-        return entity;
-    }
-
-    // ============================================================
-    // ATUALIZAR ACESSO
-    // ============================================================
-
-    public async Task<AcessoAluno> Atualizar(
-        AcessoAluno entity,
-        CancellationToken cancellationToken = default)
-    {
-        const string sql = """
-            UPDATE tb_acesso
-            SET data_hora = @Entrada,
-                data_saida = @Saida
-            WHERE id_acesso = @Id
-              AND pessoa_tipo = 0
-            """;
-
-        await using var command =
-            await CreateCommandAsync(sql, cancellationToken);
-
-        command.AddParameter("@Id", entity.Id, DbType.Int32);
-        command.AddParameter("@Entrada", entity.DataHora, DbType.DateTime);
-        command.AddParameter(
-            "@Saida",
-            (object?)entity.Saida ?? DBNull.Value,
-            DbType.DateTime);
-
-        int linhas = await command.ExecuteNonQueryAsync(cancellationToken);
-
-        if (linhas == 0)
+        try
         {
-            throw new InfrastructureException(
-                "ACESSO_ALUNO_NAO_ENCONTRADO",
-                $"Acesso do aluno com ID {entity.Id} não encontrado.");
+            await using var command = await CreateCommandAsync($"{BaseSelectQuery} AND id_acesso = @Id", cancellationToken);
+            command.AddParameter("@Id", id, DbType.Int32);
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+            return await reader.ReadAsync(cancellationToken) ? Map(reader) : null;
         }
-
-        return entity;
+        catch (DbException ex)
+        {
+            throw new InfrastructureException("ERRO_OBTER_POR_ID", $"Erro ao obter acesso de aluno ID {id}: {ex.Message}", ex);
+        }
     }
 
-    // ============================================================
-    // REMOVER ACESSO
-    // ============================================================
-
-    public async Task<bool> Remover(
-        int id,
-        CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<AcessoAluno>> ObterTodos(CancellationToken cancellationToken = default)
     {
-        const string sql = """
-            DELETE FROM tb_acesso
-            WHERE id_acesso = @Id
-              AND pessoa_tipo = 0
-            """;
-
-        await using var command =
-            await CreateCommandAsync(sql, cancellationToken);
-
-        command.AddParameter("@Id", id, DbType.Int32);
-
-        int linhas = await command.ExecuteNonQueryAsync(cancellationToken);
-
-        return linhas > 0;
+        try
+        {
+            await using var command = await CreateCommandAsync($"{BaseSelectQuery} ORDER BY data_hora DESC", cancellationToken);
+            return await LerTodosAsync(command, cancellationToken);
+        }
+        catch (DbException ex)
+        {
+            throw new InfrastructureException("ERRO_OBTER_TODOS", $"Erro ao obter acessos de alunos: {ex.Message}", ex);
+        }
     }
 
-    // ============================================================
-    // ACESSOS POR ALUNO E PERÍODO
-    // ============================================================
+    public async Task<AcessoAluno> Adicionar(AcessoAluno entity, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            string query = DbProvider.FormatInsertQuery(
+                "INSERT INTO tb_acesso (pessoa_tipo, pessoa_id, data_hora, data_hora_saida) VALUES (@Tipo, @PessoaId, @DataHora, @Saida)",
+                _databaseType);
+
+            await using var command = await CreateCommandAsync(query, cancellationToken);
+            command.AddParameter("@Tipo", TipoAluno, DbType.Int32);
+            command.AddParameter("@PessoaId", entity.AlunoId, DbType.Int32);
+            command.AddParameter("@DataHora", entity.DataHora, DbType.DateTime);
+            command.AddParameter("@Saida", entity.DataHoraSaida, DbType.DateTime);
+
+            int id = await command.ExecuteScalarIdAsync("ERRO_ADICIONAR_ACESSO", "Falha ao obter ID inserido para o acesso.", cancellationToken);
+            typeof(Entity).GetProperty("Id")?.SetValue(entity, id);
+            return entity;
+        }
+        catch (DbException ex)
+        {
+            throw new InfrastructureException("ERRO_ADICIONAR_ACESSO", $"Erro ao adicionar acesso do aluno ID {entity.AlunoId}: {ex.Message}", ex);
+        }
+    }
+
+    public async Task<AcessoAluno> Atualizar(AcessoAluno entity, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            const string query =
+                "UPDATE tb_acesso SET pessoa_id = @PessoaId, data_hora = @DataHora, data_hora_saida = @Saida WHERE id_acesso = @Id AND pessoa_tipo = 0";
+
+            await using var command = await CreateCommandAsync(query, cancellationToken);
+            command.AddParameter("@Id", entity.Id, DbType.Int32);
+            command.AddParameter("@PessoaId", entity.AlunoId, DbType.Int32);
+            command.AddParameter("@DataHora", entity.DataHora, DbType.DateTime);
+            command.AddParameter("@Saida", entity.DataHoraSaida, DbType.DateTime);
+
+            int linhas = await command.ExecuteNonQueryAsync(cancellationToken);
+            if (linhas == 0)
+                throw new InfrastructureException("REGISTRO_NAO_ENCONTRADO", $"Nenhum acesso encontrado com o ID {entity.Id} para atualização.");
+            return entity;
+        }
+        catch (DbException ex)
+        {
+            throw new InfrastructureException("ERRO_ATUALIZAR_ACESSO", $"Erro ao atualizar acesso ID {entity.Id}: {ex.Message}", ex);
+        }
+    }
+
+    public async Task<bool> Remover(int id, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await using var command = await CreateCommandAsync("DELETE FROM tb_acesso WHERE id_acesso = @Id AND pessoa_tipo = 0", cancellationToken);
+            command.AddParameter("@Id", id, DbType.Int32);
+            return await command.ExecuteNonQueryAsync(cancellationToken) > 0;
+        }
+        catch (DbException ex)
+        {
+            throw new InfrastructureException("ERRO_REMOVER_ACESSO", $"Erro ao remover acesso ID {id}: {ex.Message}", ex);
+        }
+    }
 
     public async Task<IEnumerable<AcessoAluno>> ObterAcessosPorAlunoPeriodo(
-        int? alunoId = null,
-        DateOnly? inicio = null,
-        DateOnly? fim = null,
-        CancellationToken cancellationToken = default)
+        int? alunoId = null, DateOnly? inicio = null, DateOnly? fim = null, CancellationToken cancellationToken = default)
     {
-        string sql = """
-            SELECT id_acesso, pessoa_id, data_hora, data_saida
-            FROM tb_acesso
-            WHERE pessoa_tipo = 0
-            """;
-
-        if (alunoId.HasValue)
-            sql += " AND pessoa_id = @AlunoId";
-
-        if (inicio.HasValue)
-            sql += " AND data_hora >= @Inicio";
-
-        if (fim.HasValue)
-            sql += " AND data_hora < @Fim";
-
-        sql += " ORDER BY data_hora DESC";
-
-        await using var command =
-            await CreateCommandAsync(sql, cancellationToken);
-
-        if (alunoId.HasValue)
-            command.AddParameter("@AlunoId", alunoId.Value, DbType.Int32);
-
-        if (inicio.HasValue)
+        try
         {
-            command.AddParameter(
-                "@Inicio",
-                inicio.Value.ToDateTime(TimeOnly.MinValue),
-                DbType.DateTime);
+            var sb = new StringBuilder(BaseSelectQuery);
+            if (alunoId.HasValue) sb.Append(" AND pessoa_id = @AlunoId");
+            if (inicio.HasValue) sb.Append(" AND data_hora >= @Inicio");
+            if (fim.HasValue) sb.Append(" AND data_hora < @Fim");
+            sb.Append(" ORDER BY data_hora DESC");
+
+            await using var command = await CreateCommandAsync(sb.ToString(), cancellationToken);
+            if (alunoId.HasValue) command.AddParameter("@AlunoId", alunoId.Value, DbType.Int32);
+            if (inicio.HasValue) command.AddParameter("@Inicio", inicio.Value.ToDateTime(TimeOnly.MinValue), DbType.DateTime);
+            if (fim.HasValue) command.AddParameter("@Fim", fim.Value.AddDays(1).ToDateTime(TimeOnly.MinValue), DbType.DateTime);
+
+            return await LerTodosAsync(command, cancellationToken);
         }
-
-        if (fim.HasValue)
+        catch (DbException ex)
         {
-            command.AddParameter(
-                "@Fim",
-                fim.Value.AddDays(1).ToDateTime(TimeOnly.MinValue),
-                DbType.DateTime);
+            throw new InfrastructureException("ERRO_OBTER_ACESSOS_PERIODO", $"Erro ao obter acessos por período: {ex.Message}", ex);
         }
-
-        await using var reader =
-            await command.ExecuteReaderAsync(cancellationToken);
-
-        var acessos = new List<AcessoAluno>();
-
-        while (await reader.ReadAsync(cancellationToken))
-            acessos.Add(Map(reader));
-
-        return acessos;
     }
 
-    // ============================================================
-    // ÚLTIMO ACESSO DO ALUNO
-    // ============================================================
-
-    public async Task<AcessoAluno?> ObterUltimoAcesso(
-        int alunoId,
-        CancellationToken cancellationToken = default)
+    public async Task<AcessoAluno?> ObterUltimoAcesso(int alunoId, CancellationToken cancellationToken = default)
     {
-        const string sql = """
-            SELECT id_acesso, pessoa_id, data_hora, data_saida
-            FROM tb_acesso
-            WHERE pessoa_tipo = 0
-              AND pessoa_id = @AlunoId
-            ORDER BY data_hora DESC
-            """;
-
-        await using var command =
-            await CreateCommandAsync(sql, cancellationToken);
-
-        command.AddParameter("@AlunoId", alunoId, DbType.Int32);
-
-        await using var reader =
-            await command.ExecuteReaderAsync(cancellationToken);
-
-        return await reader.ReadAsync(cancellationToken)
-            ? Map(reader)
-            : null;
-    }
-
-    // ============================================================
-    // VERIFICAR SE O ALUNO ESTÁ NA ACADEMIA
-    // ============================================================
-
-    public async Task<bool> EstaNaAcademia(
-        int alunoId,
-        CancellationToken cancellationToken = default)
-    {
-        const string sql = """
-            SELECT COUNT(*)
-            FROM tb_acesso
-            WHERE pessoa_tipo = 0
-              AND pessoa_id = @AlunoId
-              AND data_saida IS NULL
-            """;
-
-        await using var command =
-            await CreateCommandAsync(sql, cancellationToken);
-
-        command.AddParameter("@AlunoId", alunoId, DbType.Int32);
-
-        object? resultado =
-            await command.ExecuteScalarAsync(cancellationToken);
-
-        return Convert.ToInt32(resultado) > 0;
-    }
-
-    // ============================================================
-    // HORÁRIO MAIS PROCURADO POR MÊS
-    // ============================================================
-
-    public async Task<Dictionary<TimeOnly, int>>
-        ObterHorarioMaisProcuradoPorMes(
-            int mes,
-            CancellationToken cancellationToken = default)
-    {
-        if (mes < 1 || mes > 12)
-            throw new ArgumentOutOfRangeException(
-                nameof(mes),
-                "O mês deve estar entre 1 e 12.");
-
-        string hora = DbProvider.GetDateHourExpression(
-            "data_hora",
-            _databaseType);
-
-        string sql = $"""
-            SELECT {hora} AS hora, COUNT(*) AS quantidade
-            FROM tb_acesso
-            WHERE pessoa_tipo = 0
-              AND {DbProvider.GetDateMonthExpression("data_hora", _databaseType)} = @Mes
-            GROUP BY {hora}
-            ORDER BY quantidade DESC
-            """;
-
-        await using var command =
-            await CreateCommandAsync(sql, cancellationToken);
-
-        command.AddParameter("@Mes", mes, DbType.Int32);
-
-        await using var reader =
-            await command.ExecuteReaderAsync(cancellationToken);
-
-        var resultado = new Dictionary<TimeOnly, int>();
-
-        while (await reader.ReadAsync(cancellationToken))
+        try
         {
-            int horaValor = reader.GetInt32Value("hora");
-            int quantidade = reader.GetInt32Value("quantidade");
-
-            resultado[new TimeOnly(horaValor, 0)] = quantidade;
+            string query = $"{BaseSelectQuery} AND pessoa_id = @AlunoId ORDER BY data_hora DESC, id_acesso DESC";
+            await using var command = await CreateCommandAsync(query, cancellationToken);
+            command.AddParameter("@AlunoId", alunoId, DbType.Int32);
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+            return await reader.ReadAsync(cancellationToken) ? Map(reader) : null;
         }
-
-        return resultado;
+        catch (DbException ex)
+        {
+            throw new InfrastructureException("ERRO_ULTIMO_ACESSO", $"Erro ao obter último acesso do aluno ID {alunoId}: {ex.Message}", ex);
+        }
     }
 
-    // ============================================================
-    // PERMANÊNCIA MÉDIA POR MÊS
-    // ============================================================
-
-    public async Task<Dictionary<int, TimeSpan>>
-        ObterPermanenciaMediaPorMes(
-            int mes,
-            CancellationToken cancellationToken = default)
+    public async Task<bool> EstaNaAcademia(int alunoId, CancellationToken cancellationToken = default)
     {
-        // O parâmetro mes representa o mês desejado (1 a 12).
-        if (mes < 1 || mes > 12)
-            throw new ArgumentOutOfRangeException(
-                nameof(mes),
-                "O mês deve estar entre 1 e 12.");
+        var ultimo = await ObterUltimoAcesso(alunoId, cancellationToken);
+        return ultimo is { EstaDentro: true };
+    }
 
-        // Calculamos a média em C# para manter compatibilidade
-        // entre SQLite, MySQL e SQL Server.
-        var acessos = await ObterAcessosPorAlunoPeriodo(
-            null,
-            null,
-            null,
-            cancellationToken);
-
-        var permanencias = acessos
-            .Where(a =>
-                a.Saida.HasValue &&
-                a.DataHora.Month == mes)
-            .GroupBy(a => a.DataHora.Month);
-
-        var resultado = new Dictionary<int, TimeSpan>();
-
-        foreach (var grupo in permanencias)
+    public async Task<Dictionary<TimeOnly, int>> ObterHorarioMaisProcuradoPorMes(int mes, CancellationToken cancellationToken = default)
+    {
+        try
         {
-            var tempos = grupo
-                .Select(a => a.Saida!.Value - a.DataHora)
-                .ToList();
+            string hora = DbProvider.GetDateHourExpression("data_hora", _databaseType);
+            string mesExpr = DbProvider.GetDateMonthExpression("data_hora", _databaseType);
+            string query =
+                $"SELECT {hora} AS hora, COUNT(*) AS total FROM tb_acesso WHERE pessoa_tipo = 0 AND {mesExpr} = @Mes GROUP BY {hora} ORDER BY total DESC";
 
-            if (tempos.Count > 0)
+            await using var command = await CreateCommandAsync(query, cancellationToken);
+            command.AddParameter("@Mes", mes, DbType.Int32);
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+
+            var resultado = new Dictionary<TimeOnly, int>();
+            while (await reader.ReadAsync(cancellationToken))
+                resultado[new TimeOnly(Convert.ToInt32(reader["hora"]), 0)] = Convert.ToInt32(reader["total"]);
+            return resultado;
+        }
+        catch (DbException ex)
+        {
+            throw new InfrastructureException("ERRO_HORARIO_PROCURADO", $"Erro ao obter horário mais procurado: {ex.Message}", ex);
+        }
+    }
+
+    public async Task<Dictionary<int, TimeSpan>> ObterPermanenciaMediaPorMes(int mes, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            string mesExpr = DbProvider.GetDateMonthExpression("data_hora", _databaseType);
+            string query = $"{BaseSelectQuery} AND data_hora_saida IS NOT NULL AND {mesExpr} = @Mes";
+
+            await using var command = await CreateCommandAsync(query, cancellationToken);
+            command.AddParameter("@Mes", mes, DbType.Int32);
+            var acessos = await LerTodosAsync(command, cancellationToken);
+
+            var resultado = new Dictionary<int, TimeSpan>();
+            if (acessos.Count > 0)
+                resultado[mes] = TimeSpan.FromTicks((long)acessos.Average(a => a.TempoPermanencia!.Value.Ticks));
+            return resultado;
+        }
+        catch (DbException ex)
+        {
+            throw new InfrastructureException("ERRO_PERMANENCIA_MEDIA", $"Erro ao obter permanência média: {ex.Message}", ex);
+        }
+    }
+
+    public async Task<IEnumerable<Aluno>> ObterAlunosSemAcessoNosUltimosDias(int dias, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var comAcesso = new HashSet<int>();
+            await using (var command = await CreateCommandAsync(
+                "SELECT DISTINCT pessoa_id FROM tb_acesso WHERE pessoa_tipo = 0 AND data_hora >= @Limite", cancellationToken))
             {
-                long ticks = (long)tempos.Average(t => t.Ticks);
-                resultado[grupo.Key] = TimeSpan.FromTicks(ticks);
+                command.AddParameter("@Limite", DateTime.Now.AddDays(-dias), DbType.DateTime);
+                await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+                while (await reader.ReadAsync(cancellationToken))
+                    comAcesso.Add(Convert.ToInt32(reader["pessoa_id"]));
             }
+
+            await using var alunoRepo = new AlunoRepository(_connectionString, _databaseType);
+            var todos = await alunoRepo.ObterTodos(cancellationToken);
+            return todos.Where(a => !comAcesso.Contains(a.Id)).ToList();
         }
-
-        return resultado;
-    }
-
-    // ============================================================
-    // ALUNOS SEM ACESSO NOS ÚLTIMOS DIAS
-    // ============================================================
-
-    public async Task<IEnumerable<Aluno>> ObterAlunosSemAcessoNosUltimosDias(
-        int dias,
-        CancellationToken cancellationToken = default)
-    {
-        if (dias < 0)
-            throw new ArgumentOutOfRangeException(
-                nameof(dias),
-                "A quantidade de dias não pode ser negativa.");
-
-        string dataLimite = DbProvider.GetDateAddDaysExpression(
-            DbProvider.GetCurrentDateFunction(_databaseType),
-            "@Dias",
-            _databaseType);
-
-        string sql = $"""
-            SELECT
-                a.id_aluno,
-                a.cpf,
-                a.nome,
-                a.nascimento,
-                a.telefone,
-                a.email,
-                a.logradouro_id,
-                a.numero,
-                a.complemento,
-                a.senha,
-                a.foto,
-                l.id_logradouro,
-                l.cep,
-                l.nome AS logradouro_nome,
-                l.bairro,
-                l.cidade,
-                l.estado,
-                l.pais
-            FROM tb_aluno a
-            INNER JOIN tb_logradouro l
-                ON a.logradouro_id = l.id_logradouro
-            WHERE NOT EXISTS (
-                SELECT 1
-                FROM tb_acesso ac
-                WHERE ac.pessoa_tipo = 0
-                  AND ac.pessoa_id = a.id_aluno
-                  AND ac.data_hora >= {dataLimite}
-            )
-            ORDER BY a.nome
-            """;
-
-        await using var command =
-            await CreateCommandAsync(sql, cancellationToken);
-
-        command.AddParameter("@Dias", dias, DbType.Int32);
-
-        await using var reader =
-            await command.ExecuteReaderAsync(cancellationToken);
-
-        var alunos = new List<Aluno>();
-
-        while (await reader.ReadAsync(cancellationToken))
-            alunos.Add(AlunoRepository.Map(reader));
-
-        return alunos;
+        catch (DbException ex)
+        {
+            throw new InfrastructureException("ERRO_ALUNOS_SEM_ACESSO", $"Erro ao obter alunos sem acesso: {ex.Message}", ex);
+        }
     }
 }

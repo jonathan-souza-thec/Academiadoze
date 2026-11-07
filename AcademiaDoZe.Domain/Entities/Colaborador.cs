@@ -13,6 +13,11 @@ public class Colaborador : Pessoa, IAggregateRoot
     public DateOnly DataAdmissao { get; private set; }
     public ColaboradorTipo Tipo { get; private set; }
     public ColaboradorVinculo Vinculo { get; private set; }
+
+    // Limite diário de permanência: 8h para CLT, 6h para estágio
+    public TimeSpan LimiteHorasDiarias =>
+        Vinculo == ColaboradorVinculo.CLT ? TimeSpan.FromHours(8) : TimeSpan.FromHours(6);
+
     // construtor privado para evitar instância direta
     private Colaborador(int id, string nome, Cpf cpf, DateOnly dataNascimento, Telefone telefone, Email email, Endereco endereco, Senha senha, Arquivo foto, DateOnly dataAdmissao,
 

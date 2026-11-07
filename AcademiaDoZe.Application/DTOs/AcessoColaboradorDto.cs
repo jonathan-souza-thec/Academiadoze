@@ -1,7 +1,6 @@
 ﻿// Jonathan de Souza Pereira
 namespace AcademiaDoZe.Application.DTOs;
 
-// Representa uma "ida à academia": entrada e (quando houver) saída.
 public class AcessoColaboradorDto
 {
     public int Id { get; set; }
@@ -10,7 +9,8 @@ public class AcessoColaboradorDto
     public DateTime? Saida { get; set; }
     public TimeSpan? TempoPermanencia => Saida.HasValue ? Saida.Value - Entrada : null;
 
-    // Preenchidos ao registrar entrada/saída (feedback para o usuário)
-    public TimeSpan? TotalHorasHoje { get; set; }
-    public string? Mensagem { get; set; }
+    // Resultado da operação (usado pela tela da catraca)
+    public bool Autorizado { get; set; } = true;
+    public string Mensagem { get; set; } = string.Empty;
+    public TimeSpan? TotalHorasDia { get; set; }
 }

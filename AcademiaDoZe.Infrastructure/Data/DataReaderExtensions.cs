@@ -23,6 +23,10 @@ public static class DataReaderExtensions
     {
         return Convert.ToDateTime(reader[columnName]);
     }
+    public static DateTime? GetNullableDateTime(this DbDataReader reader, string columnName)
+    {
+        return reader[columnName] is DBNull ? null : Convert.ToDateTime(reader[columnName]);
+    }
     public static DateOnly GetDateOnlyValue(this DbDataReader reader, string columnName)
     {
         return DateOnly.FromDateTime(Convert.ToDateTime(reader[columnName]));

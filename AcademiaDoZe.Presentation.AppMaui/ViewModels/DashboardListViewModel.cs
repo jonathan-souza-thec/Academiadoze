@@ -7,8 +7,6 @@ namespace AcademiaDoZe.Presentation.AppMaui.ViewModels;
 
 public partial class DashboardListViewModel : BaseViewModel
 {
-    // CORREÇÃO: usa ILogradouroService (a funcionalidade desta etapa).
-    // IAcessoAlunoService é da Avaliação 03 e não conta logradouros.
     private readonly ILogradouroService _logradouroService;
 
     private int _totalLogradouros;
@@ -52,10 +50,15 @@ public partial class DashboardListViewModel : BaseViewModel
         }
     }
 
-    // CORREÇÃO: navegação para a lista via rota "logradouros" do AppShell.xaml
     [RelayCommand]
     private async Task NavigateToLogradourosAsync()
     {
         await Shell.Current.GoToAsync("//logradouros");
+    }
+
+    [RelayCommand]
+    private async Task NavigateToAcessoAsync()
+    {
+        await Shell.Current.GoToAsync("//acesso");
     }
 }

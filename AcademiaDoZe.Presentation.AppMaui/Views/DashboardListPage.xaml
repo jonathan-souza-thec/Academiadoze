@@ -92,11 +92,23 @@
                     </Grid>
                 </Border>
 
-                <!-- ── Botão de acesso rápido ── -->
+                <!-- ── Botões de acesso rápido ── -->
                 <Border Style="{StaticResource CardElevated}" Margin="20,8">
                     <VerticalStackLayout Spacing="12">
                         <Label Text="Acesso rápido"
                                Style="{StaticResource LabelFieldTitle}"/>
+
+                        <Button Text="Controle de Acesso"
+                                Command="{Binding NavigateToAcessoCommand}"
+                                Style="{StaticResource ButtonPrimary}">
+                            <Button.ImageSource>
+                                <FontImageSource
+                                    FontFamily="MaterialIcons"
+                                    Glyph="&#xe897;"
+                                    Color="White"
+                                    Size="20"/>
+                            </Button.ImageSource>
+                        </Button>
 
                         <Button Text="Gerenciar Logradouros"
                                 Command="{Binding NavigateToLogradourosCommand}"
