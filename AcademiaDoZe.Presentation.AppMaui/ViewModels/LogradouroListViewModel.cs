@@ -1,16 +1,8 @@
-﻿// Jonathan de Souza Pereira
-
-using AcademiaDoZe.Application.DTOs;
+﻿using AcademiaDoZe.Application.DTOs;
 using AcademiaDoZe.Application.Interfaces;
-using AcademiaDoZe.Presentation.AppMaui.Views;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Maui.ApplicationModel;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace AcademiaDoZe.Presentation.AppMaui.ViewModels;
 
@@ -18,15 +10,13 @@ public partial class LogradouroListViewModel : BaseViewModel
 {
     private readonly ILogradouroService _logradouroService;
 
-    // Lista de logradouros
     public ObservableCollection<LogradouroDto> Logradouros { get; } = new();
 
-    // Comandos de edição e exclusão criados explicitamente
-    public IAsyncRelayCommand<LogradouroDto> EditLogradouroCommand { get; }
+    // Os comandos aceitam parâmetros nulos
+    public IAsyncRelayCommand<LogradouroDto?> EditLogradouroCommand { get; }
 
-    public IAsyncRelayCommand<LogradouroDto> DeleteLogradouroCommand { get; }
+    public IAsyncRelayCommand<LogradouroDto?> DeleteLogradouroCommand { get; }
 
-    // Texto da pesquisa
     private string _searchText = string.Empty;
 
     public string SearchText
@@ -35,7 +25,6 @@ public partial class LogradouroListViewModel : BaseViewModel
         set => SetProperty(ref _searchText, value);
     }
 
-    // Estado de atualização da lista
     private bool _isRefreshing;
 
     public bool IsRefreshing
@@ -44,7 +33,6 @@ public partial class LogradouroListViewModel : BaseViewModel
         set => SetProperty(ref _isRefreshing, value);
     }
 
-    // Opções do filtro
     public ObservableCollection<string> FilterTypes { get; } = new()
     {
         "Nome",
@@ -61,20 +49,19 @@ public partial class LogradouroListViewModel : BaseViewModel
         set => SetProperty(ref _selectedFilterType, value);
     }
 
-    // Construtor
     public LogradouroListViewModel(ILogradouroService logradouroService)
     {
         _logradouroService = logradouroService;
+
         Title = "Logradouros";
 
         EditLogradouroCommand =
-            new AsyncRelayCommand<LogradouroDto>(EditLogradouroAsync);
+            new AsyncRelayCommand<LogradouroDto?>(EditLogradouroAsync);
 
         DeleteLogradouroCommand =
-            new AsyncRelayCommand<LogradouroDto>(DeleteLogradouroAsync);
+            new AsyncRelayCommand<LogradouroDto?>(DeleteLogradouroAsync);
     }
 
-    // Carregar logradouros
     [RelayCommand]
     private async Task LoadLogradourosAsync()
     {
@@ -120,7 +107,6 @@ public partial class LogradouroListViewModel : BaseViewModel
         }
     }
 
-    // Pesquisar logradouros
     [RelayCommand]
     private async Task SearchLogradourosAsync()
     {
@@ -196,7 +182,6 @@ public partial class LogradouroListViewModel : BaseViewModel
         }
     }
 
-    // Atualizar lista
     [RelayCommand]
     private async Task RefreshAsync()
     {
@@ -204,10 +189,10 @@ public partial class LogradouroListViewModel : BaseViewModel
             return;
 
         IsRefreshing = true;
+
         await LoadLogradourosAsync();
     }
 
-    // Abrir tela para adicionar
     [RelayCommand]
     private async Task AddLogradouroAsync()
     {
@@ -224,15 +209,15 @@ public partial class LogradouroListViewModel : BaseViewModel
         }
     }
 
-    // Abrir tela para editar
-    private async Task EditLogradouroAsync(LogradouroDto logradouro)
+    private async Task EditLogradouroAsync(LogradouroDto? logradouro)
     {
         if (logradouro is null)
             return;
 
         try
         {
-            await Shell.Current.GoToAsync($"logradouro?Id={logradouro.Id}");
+            await Shell.Current.GoToAsync(
+                $"logradouro?Id={logradouro.Id}");
         }
         catch (Exception ex)
         {
@@ -243,8 +228,7 @@ public partial class LogradouroListViewModel : BaseViewModel
         }
     }
 
-    // Excluir logradouro
-    private async Task DeleteLogradouroAsync(LogradouroDto logradouro)
+    private async Task DeleteLogradouroAsync(LogradouroDto? logradouro)
     {
         if (logradouro is null || IsBusy)
             return;

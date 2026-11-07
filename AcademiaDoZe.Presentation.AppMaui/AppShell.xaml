@@ -112,6 +112,17 @@
     </FlyoutItem>
 
 
+    <FlyoutItem Title="Controle de Acesso">
+        <FlyoutItem.Icon>
+            <FontImageSource
+                FontFamily="MaterialIcons"
+                Glyph="&#xe897;"
+                Color="{AppThemeBinding Light=#E8500A, Dark=#FF7B3A}"
+                Size="24"/>
+        </FlyoutItem.Icon>
+        <ShellContent ContentTemplate="{DataTemplate views:AcessoPage}" Route="acessos" />
+    </FlyoutItem>
+
 
 
 </Shell>

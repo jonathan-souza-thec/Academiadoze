@@ -67,9 +67,44 @@ public static class MauiProgram
         builder.Services.AddTransient<MatriculaListPage>();        // <-- NOVA
         builder.Services.AddTransient<MatriculaPage>();            // <-- NOVA
 
+
+        // Registrar ViewModels
+        builder.Services.AddTransient<DashboardListViewModel>();
+        builder.Services.AddTransient<LogradouroListViewModel>();
+        builder.Services.AddTransient<LogradouroViewModel>();
+        builder.Services.AddTransient<ColaboradorListViewModel>();
+        builder.Services.AddTransient<ColaboradorViewModel>();
+        builder.Services.AddTransient<AlunoListViewModel>();
+        builder.Services.AddTransient<AlunoViewModel>();
+        builder.Services.AddTransient<MatriculaListViewModel>();
+        builder.Services.AddTransient<MatriculaViewModel>();
+        builder.Services.AddTransient<AcessoViewModel>();
+
+        // Registrar Views
+        builder.Services.AddTransient<DashboardListPage>();
+        builder.Services.AddTransient<LogradouroListPage>();
+        builder.Services.AddTransient<LogradouroPage>();
+        builder.Services.AddTransient<ConfigPage>();
+        builder.Services.AddTransient<ColaboradorListPage>();
+        builder.Services.AddTransient<ColaboradorPage>();
+        builder.Services.AddTransient<AlunoListPage>();
+        builder.Services.AddTransient<AlunoPage>();
+        builder.Services.AddTransient<MatriculaListPage>();
+        builder.Services.AddTransient<MatriculaPage>();
+        builder.Services.AddTransient<AcessoPage>();
+
+
+
+
+
+
+
 #if DEBUG
         builder.Logging.AddDebug();
 #endif
+
+
+
 
         return builder.Build();
     }

@@ -78,6 +78,10 @@
 
 	<ItemGroup>
 
+		<MauiXaml Update="Views\AcessoPage.xaml">
+		  <Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+
 		<MauiXaml Update="Views\ColaboradorListPage.xaml">
 		  <Generator>MSBuild:Compile</Generator>
 		</MauiXaml>

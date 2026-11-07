@@ -10,16 +10,10 @@ public partial class AppShell : Shell
     {
         InitializeComponent();
 
-        Routing.RegisterRoute("logradouro", typeof(Views.LogradouroPage));
+        // Rotas de páginas de detalhe/cadastro (cada rota deve ser registrada apenas uma vez)
+        Routing.RegisterRoute("logradouro", typeof(LogradouroPage));
         Routing.RegisterRoute("colaborador", typeof(ColaboradorPage));
         Routing.RegisterRoute("aluno", typeof(AlunoPage));
-        Routing.RegisterRoute("logradouro", typeof(Views.LogradouroPage));
-        Routing.RegisterRoute("colaborador", typeof(ColaboradorPage));
-        Routing.RegisterRoute("aluno", typeof(AlunoPage));
-        Routing.RegisterRoute("matricula", typeof(MatriculaPage));   // <-- NOVA
-
+        Routing.RegisterRoute("matricula", typeof(MatriculaPage));
     }
-
-
-
 }

@@ -1,10 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿// Jonathan de Souza Pereira
+namespace AcademiaDoZe.Application.Exceptions;
 
-namespace AcademiaDoZe.Application.Exceptions
+// Lançada quando uma regra de negócio impede a entrada/saída (ex: sem matrícula ativa, limite de horas).
+// A camada de apresentação usa essa exceção para exibir "Acesso Negado" em vez de um erro genérico.
+public class AcessoNegadoException : InvalidOperationException
 {
-    internal class AcessoNegadoException
+    public AcessoNegadoException(string message) : base(message)
     {
     }
 }
