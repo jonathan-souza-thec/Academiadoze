@@ -13,7 +13,7 @@
             <VerticalStackLayout Spacing="0">
 
                 <!-- ── Banner superior ── -->
-                <Grid HeightRequest="200"
+                <Grid HeightRequest="240"
                       BackgroundColor="{AppThemeBinding Light=#E8500A, Dark=#2A1A10}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"/>
@@ -23,7 +23,7 @@
                     <Border BackgroundColor="White"
                             StrokeThickness="0"
                             StrokeShape="RoundRectangle 20"
-                            WidthRequest="120" HeightRequest="120"
+                            WidthRequest="170" HeightRequest="170"
                             HorizontalOptions="Center"
                             VerticalOptions="Center"
                             Padding="8">
@@ -31,7 +31,7 @@
                             <Shadow Brush="Black" Offset="0,4" Radius="16" Opacity="0.25"/>
                         </Border.Shadow>
                         <Image Source="academiadoze.png"
-                               HeightRequest="100" WidthRequest="100"
+                               HeightRequest="150" WidthRequest="150"
                                Aspect="AspectFit"/>
                     </Border>
 

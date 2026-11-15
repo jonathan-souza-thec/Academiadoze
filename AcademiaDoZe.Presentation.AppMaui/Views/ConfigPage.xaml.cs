@@ -20,7 +20,7 @@ public partial class ConfigPage : ContentPage
 
     private const string UsuarioPadraoMySql = "root";
 
-    private const string SenhaPadraoMySql = "abcBolinhas12345";
+    private const string SenhaPadraoMySql = "123456";
 
 
     // ============================================================

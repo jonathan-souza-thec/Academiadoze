@@ -10,7 +10,7 @@ public partial class AppShell : Shell
     {
         InitializeComponent();
 
-        // Rotas de páginas de detalhe/cadastro (cada rota deve ser registrada apenas uma vez)
+        // Rotas das páginas de cadastro (cada rota deve ser registrada apenas uma vez)
         Routing.RegisterRoute("logradouro", typeof(LogradouroPage));
         Routing.RegisterRoute("colaborador", typeof(ColaboradorPage));
         Routing.RegisterRoute("aluno", typeof(AlunoPage));

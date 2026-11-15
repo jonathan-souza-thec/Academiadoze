@@ -156,7 +156,7 @@ public static class ConfigurationHelper
 
             var dbPassword = Preferences.Get(
                 $"{prefix}_Senha",
-                "abcBolinhas12345");
+                "123456");
 
             var dbComplemento = Preferences.Get(
                 $"{prefix}_Complemento",
